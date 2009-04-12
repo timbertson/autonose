@@ -20,7 +20,7 @@ system should be simple enough and well documented to enable others to
 build on top of it.
 
 It will depend on nosetests, because nosetests is awesome and ought to make
-the watcher pretty simple. Also, it would be silly if had `sniffles`
+the watcher pretty simple. Also, it would be silly if we had `sniffles`
 without a `nose` ;)
 
 Here is the component breakdown:
