@@ -1,10 +1,10 @@
-# sniffer - 'ze great plan:
+# Sniffles - 'ze great plan:
 
-Sniffer is to be a python autotest-like tool. pyautotest already exists, but
+Sniffles is to be a python autotest-like tool. pyautotest already exists, but
 personally I've not had much luck with it, and by re-running everything all
 the time, it doesn't really scale to larger projects.
 
-The aim of sniffer is to be trustable - aside from some well known shortcomings,
+The aim of sniffles is to be trustable - aside from some well known shortcomings,
 it should be able to give you 100% confidence that its cached test results
 are in fact the current state of your test base. It will accomplish this by
 runtime coverage checking, to determine all possible files that could cause
@@ -20,7 +20,7 @@ system should be simple enough and well documented to enable others to
 build on top of it.
 
 It will depend on nosetests, because nosetests is awesome and ought to make
-the watcher pretty simple. Also, it would be silly if to have `sniffer`
+the watcher pretty simple. Also, it would be silly if to have `sniffles`
 without a `nose` ;)
 
 Here is the component breakdown:
@@ -48,9 +48,9 @@ behaviour:
     - checking most recently modified files first
     - user input? This should force a re-test, not just a modtime check
       - maybe a user could even append the location of a modified
-        file to some file/named pipe which sniffer is continually reading.
+        file to some file/named pipe which sniffles is continually reading.
         Not that brilliant, but it allows for 3rd party os os-specififc
-        extensions to easily inform sniffer of changed files
+        extensions to easily inform sniffles of changed files
         (i.e a simple spotlight or inotify script)
 
   - when a file modification or deletion is detected:
