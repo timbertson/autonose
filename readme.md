@@ -5,9 +5,9 @@ personally I've not had much luck with it, and by re-running everything all
 the time, it doesn't really scale to larger projects.
 
 The aim of sniffles is to be trustable - aside from some well known shortcomings,
-it should be able to give you 100% confidence that its cached test results
+it should be able to give you high confidence that its cached test results
 are in fact the current state of your test base. It will accomplish this by
-runtime coverage checking, to determine all possible files that could cause
+runtime coverage checking, to determine all code files that could cause
 the result of any given test to change.
 
 Also, it should be quick. Ideally, it wouldn't have to poll for filesystem
