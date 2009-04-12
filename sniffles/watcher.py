@@ -110,15 +110,12 @@ class Watcher(nose.plugins.Plugin):
 
 		test_key = str(test.test.__module__)
 		if not test_key in self.file_dependencies:
-			self.file_dependencies[test_key] = set()
+			self.file_dependencies[test_key] = []
 		deps = self.file_dependencies[test_key]
 		for imported_file in self._importer.imported:
 			if imported_file.path not in deps:
 				debug('depends on: ' + str(imported_file))
-				for dep in deps:
-					if dep == imported_file.path and imported_file.path == dep:
-						raise RuntimeError('how is this possible?')
-				deps.add(imported_file)
+				deps.append(imported_file)
 			else:
 				debug("skipping: %s" % (imported_file.path))
 		self._importer.reset()
