@@ -1,0 +1,7 @@
+*.tmproj
+build
+dist
+*.egg-info
+*.pyc
+*.pickle
+
