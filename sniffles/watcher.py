@@ -5,6 +5,7 @@ import subprocess
 import os
 import re
 import pickle
+import types
 
 log = logging.getLogger(__name__)
 debug = log.debug
@@ -27,7 +28,7 @@ class ImportMonitor(object):
 	def end(self):
 		self._revert_import()
 		
-	def clear():
+	def reset(self):
 		self.imported = []
 	
 	def _clean_filename(self, fname):
@@ -36,6 +37,26 @@ class ImportMonitor(object):
 		if fname.startswith(self._base):
 			fname = fname[len(self._base)+1:]
 		return fname
+	
+	def _add_path(self, path):
+		real_path = self._clean_filename(path)
+		if real_path not in self.imported:
+			debug('imported: ' + str(real_path))
+			self.imported.append(FileStamp(real_path))
+	
+	def _all_module_files(self, module_object):
+		files = []
+		try:
+			files.append(module_object.__file__)
+		except AttributeError: pass
+		for key, value in module_object.__dict__.items():
+			if not isinstance(value, types.ModuleType):
+				continue
+			try:
+				files.append(value.__file__)
+			except AttributeError: pass
+		return files
+			
 	
 	def _monitored_import(self, *args, **kwargs):
 		mod = self._import(*args, **kwargs)
@@ -47,9 +68,11 @@ class ImportMonitor(object):
 			log.error('module %r has no __file__ attribute' % (mod,))
 			return mod
 		if fl.startswith(self._base):
-			filestamp = FileStamp(self._clean_filename(fl))
-			if filestamp not in self.imported:
-				self.imported.append(filestamp)
+			files = self._all_module_files(mod)
+			for mod_file in files:
+				self._add_path(mod_file)
+			self._add_path(fl)
+				
 		return mod
 
 	def _insert_import(self):
@@ -58,6 +81,7 @@ class ImportMonitor(object):
 
 	def _revert_import(self):
 		__builtin__.__import__ = self._import
+
 
 class Watcher(nose.plugins.Plugin):
 	name = 'sniffles'
@@ -77,6 +101,7 @@ class Watcher(nose.plugins.Plugin):
 			self.old_file_dependencies = pickle.load(picklefile)
 		except IOError:
 			self.old_file_dependencies = {}
+		debug('\n\ntest: ' + str(test.test.__module__))
 		
 	def _afterTest(self):
 		test = self.last_test
@@ -87,7 +112,16 @@ class Watcher(nose.plugins.Plugin):
 		if not test_key in self.file_dependencies:
 			self.file_dependencies[test_key] = set()
 		deps = self.file_dependencies[test_key]
-		deps.update(set(self._importer.imported))
+		for imported_file in self._importer.imported:
+			if imported_file.path not in deps:
+				debug('depends on: ' + str(imported_file))
+				for dep in deps:
+					if dep == imported_file.path and imported_file.path == dep:
+						raise RuntimeError('how is this possible?')
+				deps.add(imported_file)
+			else:
+				debug("skipping: %s" % (imported_file.path))
+		self._importer.reset()
 	
 	def report(self, stream=None):
 		self._afterTest()
@@ -100,9 +134,11 @@ class Watcher(nose.plugins.Plugin):
 		picklefile.close()
 
 class FileStamp(object):
-	def __init__(self, path):
+	def __init__(self, path, stamp = None):
 		self.path = path
 		self.modtime = os.stat(os.path.join(_cwd, path)).st_mtime
+		if stamp is not None:
+			self.modtime = stamp
 	
 	def __str__(self):
 		return "%s@%s" % (self.path, self.modtime)
@@ -112,9 +148,10 @@ class FileStamp(object):
 
 	def __eq__(self, other):
 		if isinstance(other, self.__class__):
+			# debug('INSTANCE COMP')
 			return self.path == other.path and self.modtime == other.modtime
 		elif isinstance(other, str):
+			# debug('string cmp: %s == %s ? %r' % (self.path, other, self.path == other))
 			return self.path == other
-
 
 
