@@ -16,5 +16,16 @@ class FileStamp(object):
 			return self.path == other.path and self.modtime == other.modtime
 		elif isinstance(other, str):
 			return self.path == other
+	
+	def __ne__(self, other):
+		return not self.__eq__(other)
+	
+	def __hash__(self):
+		return hash(self.path)
+
+	def __cmp__(self, other):
+		if self.path != other.path:
+			return cmp(self.path, other.path)
+		return cmp(self.modtime, other.modtime)
 
 
