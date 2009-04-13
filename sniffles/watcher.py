@@ -17,6 +17,21 @@ import __builtin__
 
 from shared.const import picklefile_name
 
+def load_dependencies(base=None):
+	if base is None:
+		base = _cwd
+	path = os.path.join(base, picklefile_name)
+	try:
+		picklefile = open(path)
+		ret = pickle.load(picklefile)
+		picklefile.close()
+		debug("loaded: %s" % (picklefile.name,))
+	except IOError:
+		debug("IOError: (cwd=%s)", os.getcwd(), exc_info=sys.exc_info())
+		ret = {}
+	return ret
+
+
 class ImportMonitor(object):
 	imported = []
 	_pyc = re.compile('\.pyc', re.I)
@@ -83,26 +98,35 @@ class ImportMonitor(object):
 
 	def _revert_import(self):
 		__builtin__.__import__ = self._import
+	
+	def path_for_module(self, name, module=None):
+		if module is None:
+			module = __import__(name)
+		files = map(self._clean_filename, self._all_module_files(module))
+		module_path = os.path.join(*str(name).split('.'))
+		debug("files: %s" % files)
+		debug("module_path: %s" % module_path)
+		for file_ in files:
+			if file_.startswith(module_path):
+				return file_
+		raise ValueError("module %s does not seem to have a canonical .py file in its top-level object files: %s" % (name, files))
 
 
 class Watcher(nose.plugins.Plugin):
 	name = 'sniffles'
+	score = 800
 
 	def begin(self):
 		self.file_dependencies = {}
 		self.last_test = None
 		self._importer = ImportMonitor()
+		self.old_file_dependencies = load_dependencies()
 			
 	def beforeTest(self, test):
 		if self.last_test is not None:
 			self._afterTest()
 
 		self.last_test = test
-		try:
-			picklefile = open(os.path.join(_cwd, picklefile_name))
-			self.old_file_dependencies = pickle.load(picklefile)
-		except IOError:
-			self.old_file_dependencies = {}
 		debug('\n\ntest: ' + str(test.test.__module__))
 		
 	def _afterTest(self):
@@ -110,7 +134,8 @@ class Watcher(nose.plugins.Plugin):
 		if test is None: return
 		self.last_test = None
 
-		test_key = str(test.test.__module__)
+		modname = str(test.test.__module__)
+		test_key = self._importer.path_for_module(modname)
 		if not test_key in self.file_dependencies:
 			self.file_dependencies[test_key] = []
 		deps = self.file_dependencies[test_key]
@@ -118,6 +143,7 @@ class Watcher(nose.plugins.Plugin):
 			if imported_file.path not in deps:
 				debug('depends on: ' + str(imported_file))
 				deps.append(imported_file)
+		
 		self._importer.reset()
 	
 	def report(self, stream=None):
@@ -129,4 +155,5 @@ class Watcher(nose.plugins.Plugin):
 		picklefile = open(os.path.join(_cwd, picklefile_name), 'w')
 		pickle.dump(self.old_file_dependencies, picklefile)
 		picklefile.close()
+		debug("saved dependencies file: %s" % (picklefile.name))
 

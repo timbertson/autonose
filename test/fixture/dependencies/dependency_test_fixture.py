@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-class TestCoverageFixture(TestCase):
+class TestDependencyFixture(TestCase):
 	def test_1(self):
 		import included1 as incl
 	

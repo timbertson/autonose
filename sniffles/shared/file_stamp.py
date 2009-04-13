@@ -16,3 +16,5 @@ class FileStamp(object):
 			return self.path == other.path and self.modtime == other.modtime
 		elif isinstance(other, str):
 			return self.path == other
+
+
