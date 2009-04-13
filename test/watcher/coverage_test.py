@@ -3,7 +3,7 @@ from commands import getstatusoutput
 from os import path
 import pickle
 
-from sniffles.watcher import picklefile_name
+from sniffles.shared.const import picklefile_name
 
 class TestCoverage(TestCase):
 	def run_fixture(self, relpath, *modules):

@@ -7,13 +7,15 @@ import re
 import pickle
 import types
 
+from shared import FileStamp
+
 log = logging.getLogger(__name__)
 debug = log.debug
 _cwd = os.path.realpath(os.getcwd())
 
 import __builtin__
 
-picklefile_name = '.sniffle-depends.pickle'
+from shared.const import picklefile_name
 
 class ImportMonitor(object):
 	imported = []
@@ -116,8 +118,6 @@ class Watcher(nose.plugins.Plugin):
 			if imported_file.path not in deps:
 				debug('depends on: ' + str(imported_file))
 				deps.append(imported_file)
-			else:
-				debug("skipping: %s" % (imported_file.path))
 		self._importer.reset()
 	
 	def report(self, stream=None):
@@ -129,26 +129,4 @@ class Watcher(nose.plugins.Plugin):
 		picklefile = open(os.path.join(_cwd, picklefile_name), 'w')
 		pickle.dump(self.old_file_dependencies, picklefile)
 		picklefile.close()
-
-class FileStamp(object):
-	def __init__(self, path, stamp = None):
-		self.path = path
-		self.modtime = os.stat(os.path.join(_cwd, path)).st_mtime
-		if stamp is not None:
-			self.modtime = stamp
-	
-	def __str__(self):
-		return "%s@%s" % (self.path, self.modtime)
-
-	def __repr__(self):
-		return "#<%s: %s>" % (self.__class__.__name__, self)
-
-	def __eq__(self, other):
-		if isinstance(other, self.__class__):
-			# debug('INSTANCE COMP')
-			return self.path == other.path and self.modtime == other.modtime
-		elif isinstance(other, str):
-			# debug('string cmp: %s == %s ? %r' % (self.path, other, self.path == other))
-			return self.path == other
-
 
