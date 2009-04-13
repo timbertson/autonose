@@ -16,7 +16,7 @@ class TestDependencyDiscovery(TestCase):
 		st, out = getstatusoutput(cmd)
 		if st != 0:
 			raise OSError("command `%s` failed:\n%s" %(cmd, out))
-		print out
+		# print out
 		return out
 	
 	def path(self, relpath):
@@ -24,12 +24,16 @@ class TestDependencyDiscovery(TestCase):
 	
 	def test_fixture_should_depend_on_all_included_files(self):
 		fixture_path = self.path('../fixture')
-		output = self.run_fixture(fixture_path, 'dependencies.dependency_test_fixture')
+		output = self.run_fixture(fixture_path, 'dependencies')
 		depends = watcher.load_dependencies(fixture_path)
 		print depends
 		
-		self.assertEqual(depends.keys(), ['dependencies/dependency_test_fixture.py'])
+		self.assertEqual(depends.keys(), ['dependencies/dependency_test_fixture.py', 'dependencies/module_dependency_test_fixture.py'])
 		depended_filestamps = depends['dependencies/dependency_test_fixture.py']
+		module_depended_filestamps = depends['dependencies/module_dependency_test_fixture.py']
 		depended_files = map(lambda x: x.path, depended_filestamps)
+		module_depended_files = map(lambda x: x.path, module_depended_filestamps)
+		
 		self.assertEqual(sorted(depended_files), ['dependencies/__init__.py', 'dependencies/dependency_test_fixture.py', 'dependencies/included1.py', 'dependencies/included2.py'])
+		self.assertEqual(sorted(module_depended_files), ['dependencies/__init__.py', 'dependencies/dependency_test_fixture.py', 'dependencies/included1.py', 'dependencies/included2.py'])
 

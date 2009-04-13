@@ -1,0 +1,1 @@
+thingObject = 1

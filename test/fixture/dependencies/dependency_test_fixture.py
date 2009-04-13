@@ -12,4 +12,3 @@ class TestDependencyFixture(TestCase):
 	def test_2(self):
 		import included2
 
-
