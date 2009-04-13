@@ -3,8 +3,8 @@ import re
 import __builtin__
 import logging
 
-from shared.const import cwd
-from shared import FileStamp
+from ..shared.const import cwd
+from ..shared import FileStamp
 import module_tools
 
 log = logging.getLogger(__name__)

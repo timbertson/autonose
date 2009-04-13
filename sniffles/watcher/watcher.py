@@ -5,13 +5,15 @@ import subprocess
 import os
 import pickle
 
-from shared.const import cwd
-from shared.const import picklefile_name
+from ..shared.const import cwd
+from ..shared.const import picklefile_name
 
 from import_monitor import ImportMonitor
 
 log = logging.getLogger(__name__)
 debug = log.debug
+
+__all__ = ['load_dependencies', 'Watcher']
 
 def load_dependencies(base=None):
 	if base is None:
