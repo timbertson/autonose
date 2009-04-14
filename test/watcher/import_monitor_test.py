@@ -30,6 +30,9 @@ class ImportMonitorTest(TestCase):
 		self.importer.stop()
 		from ..fixture.dependencies.includeddir import thing
 		self.assertEqual(self.importer.imported, [])
+	
+	def test_should_absolutise_paths_when_checking_if_they_are_within_base(self):
+		self.assertTrue(self.importer._within_base('foo'))
 		
 
 

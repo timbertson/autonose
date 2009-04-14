@@ -46,7 +46,7 @@ class ImportMonitor(object):
 			self.imported.append(FileStamp(real_path))
 	
 	def _within_base(self, path):
-		return path.startswith(self._base)
+		return os.path.abspath(path).startswith(self._base)
 
 	def _monitored_import(self, *args, **kwargs):
 		mod = self._import(*args, **kwargs)
