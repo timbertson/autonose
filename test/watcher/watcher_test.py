@@ -59,7 +59,8 @@ class TestDependencyDiscovery(TestCase):
 			'dependencies/__init__.py',
 			'dependencies/dependency_test_fixture.py',
 			'dependencies/included1.py',
-			'dependencies/included2.py']
+			'dependencies/included2.py',
+			'dependencies/included3.py']
 
 		expected_module_depended_files = [
 			'__init__.py',

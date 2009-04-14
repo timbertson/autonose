@@ -1,4 +1,5 @@
 from unittest import TestCase
+import included3
 
 class TestDependencyFixture(TestCase):
 	def test_1(self):

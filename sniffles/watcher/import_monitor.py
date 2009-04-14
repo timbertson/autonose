@@ -20,9 +20,9 @@ class ImportMonitor(object):
 		if base is None:
 			base = cwd
 		self._base = base
+		self.reset()
 	
 	def start(self):
-		self.reset()
 		self._insert_import()
 		
 	def stop(self):

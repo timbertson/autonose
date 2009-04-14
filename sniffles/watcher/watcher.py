@@ -41,21 +41,28 @@ class Watcher(nose.plugins.Plugin):
 		self.last_test = None
 		self._importer = ImportMonitor()
 		self.old_file_dependencies = load_dependencies()
+	
+	def beforeImport(self, *args):
 		self._importer.start()
-			
+		debug("-- import test: %s" % (args,))
+		
 	def beforeTest(self, test):
 		if self.last_test is not None:
 			self._afterTest()
 			debug("-- END test.\n\n")
 
 		self.last_test = test
+		self._importer.start()
 		debug('** BEGIN test:  %s' % str(test.test))
+		# import this now, to ensure it is caught by our import listener
+		__import__(str(test.test.__module__))
 		
 	def _afterTest(self):
 		test = self.last_test
 		if test is None: return
 		self.last_test = None
 		self._importer.reset()
+		self._importer.stop()
 
 		modname = str(test.test.__module__)
 		test_key = self._importer.path_for_module(modname)
