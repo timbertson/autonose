@@ -28,7 +28,7 @@ class ImportMonitorTest(TestCase):
 	def test_should_not_capture_imports_after_end(self):
 		self.importer.reset()
 		self.importer.stop()
-		import dummy_module
+		from ..fixture.dependencies.includeddir import thing
 		self.assertEqual(self.importer.imported, [])
 		
 
