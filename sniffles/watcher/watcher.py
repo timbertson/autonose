@@ -29,6 +29,8 @@ def load_dependencies(base=None):
 		ret = {}
 	return ret
 
+#FIXME: hooking _importer at self.before() causes *all* test files to be depended upon by the
+# first test, since nose imports the test modules before tests are run.
 
 class Watcher(nose.plugins.Plugin):
 	name = 'sniffles'
@@ -39,6 +41,7 @@ class Watcher(nose.plugins.Plugin):
 		self.last_test = None
 		self._importer = ImportMonitor()
 		self.old_file_dependencies = load_dependencies()
+		self._importer.start()
 			
 	def beforeTest(self, test):
 		if self.last_test is not None:
@@ -46,12 +49,13 @@ class Watcher(nose.plugins.Plugin):
 			debug("-- END test.\n\n")
 
 		self.last_test = test
-		debug('** BEGIN test: ' + str(test.test.__module__))
+		debug('** BEGIN test:  %s' % str(test.test))
 		
 	def _afterTest(self):
 		test = self.last_test
 		if test is None: return
 		self.last_test = None
+		self._importer.reset()
 
 		modname = str(test.test.__module__)
 		test_key = self._importer.path_for_module(modname)
@@ -62,13 +66,12 @@ class Watcher(nose.plugins.Plugin):
 			if imported_file.path not in deps:
 				debug('%s depends on: %s' % (test_key, imported_file))
 				deps.append(imported_file)
-		
-		self._importer.reset()
+		debug('*** - dependant files for %s: %s' % (test_key, deps,))
 	
 	def report(self, stream=None):
 		self._afterTest()
 
-		self._importer.end()
+		self._importer.stop()
 		self.old_file_dependencies.update(self.file_dependencies)
 		debug(repr(self.file_dependencies))
 		picklefile = open(os.path.join(cwd, picklefile_name), 'w')

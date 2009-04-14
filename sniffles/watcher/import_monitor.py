@@ -14,17 +14,22 @@ debug = log.debug
 class ImportMonitor(object):
 	imported = []
 	_pyc = re.compile('\.pyc', re.I)
+	_active = False
 
 	def __init__(self, base=None):
 		if base is None:
 			base = cwd
 		self._base = base
-		self._insert_import()
 	
-	def end(self):
+	def start(self):
+		self.reset()
+		self._insert_import()
+		
+	def stop(self):
 		self._revert_import()
 		
 	def reset(self):
+		debug("%r :: reset()" % (self))
 		self.imported = []
 	
 	def _clean_filename(self, fname):
@@ -47,16 +52,20 @@ class ImportMonitor(object):
 		mod = self._import(*args, **kwargs)
 		debug('importing: %s' % (args[0],))
 		files = filter(self._within_base, module_tools.all_parent_module_files(args[0], mod))
-		debug('all files: %s' % (files))
+		if len(files) > 0:
+			debug('         : %s' % (files))
 		map(self._add_path, files)
 		return mod
 
 	def _insert_import(self):
 		"""substitute the builtin import for our own"""
+		if self._active: return
 		self._import = __builtin__.__import__
 		__builtin__.__import__ = self._monitored_import
+		self._active = True
 
 	def _revert_import(self):
+		if not self._active: return
 		"""remove our import from the call chain"""
 		__builtin__.__import__ = self._import
 	

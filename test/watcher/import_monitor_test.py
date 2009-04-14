@@ -7,16 +7,17 @@ from ..test_helper import sniffles_root
 class ImportMonitorTest(TestCase):
 	def setUp(self):
 		self.importer = ImportMonitor(sniffles_root)
+		self.importer.start()
 	
 	def tearDown(self):
-		self.importer.end()
+		self.importer.stop()
 		self.importer = None
 
 	def test_should_monitor_imports(self):
-		from dummy_module import thing
+		from ..fixture.dependencies.includeddir import thing
 		imported_files = self.importer.imported
 		file_paths = map(lambda x: x.path, imported_files)
-		self.assertEqual(['test/watcher/dummy_module.py'], file_paths)
+		self.assertTrue('test/fixture/dependencies/includeddir/thing.py' in file_paths, file_paths)
 		self.importer.reset()
 		self.assertEqual(self.importer.imported, [])
 	
@@ -26,10 +27,9 @@ class ImportMonitorTest(TestCase):
 	
 	def test_should_not_capture_imports_after_end(self):
 		self.importer.reset()
-		self.importer.end()
+		self.importer.stop()
 		import dummy_module
 		self.assertEqual(self.importer.imported, [])
 		
-		self.importer._insert_import() # so tearDown won't fail
 
 
