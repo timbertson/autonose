@@ -43,32 +43,33 @@ class TestDependencyDiscovery(TestCase):
 		depends = watcher.load_dependencies(fixture_path)
 		print depends
 
-		expected_test_files = [
-			'dependencies/dependency_test_fixture.py',
-			'dependencies/module_dependency_test_fixture.py']
+		dependency_tree_paths_only = {}
+		for key, dependency_list in depends.items():
+			dependency_tree_paths_only[key] = map(lambda x: x.path, dependency_list)
+		
+		expected_dependencies = {
+			'dependencies/dependency_test_fixture.py': [
+				'__init__.py',
+				'dependencies/__init__.py',
+				'dependencies/dependency_test_fixture.py',
+				'dependencies/included1.py',
+				'dependencies/included2.py',
+				'dependencies/included3.py'],
+
+			'dependencies/module_dependency_test_fixture.py': [
+				'__init__.py',
+				'dependencies/__init__.py',
+				'dependencies/module_dependency_test_fixture.py',
+				'dependencies/includeddir/__init__.py',
+				'dependencies/includeddir/thing.py'],
+
+			'dependencies/includeddir/__init__.py': [
+				'dependencies/includeddir/thing.py'],
+
+			'dependencies/__init__.py': [],
+		}
+		
+		self.assertSetEqual(depends.keys(), expected_dependencies)
+		for key, expected_dependency_list in expected_dependencies.items():
+			self.assertSetEqual(dependency_tree_paths_only[key], expected_dependency_list)
 			
-		self.assertEqual(depends.keys(), expected_test_files)
-		depended_filestamps = depends['dependencies/dependency_test_fixture.py']
-		module_depended_filestamps = depends['dependencies/module_dependency_test_fixture.py']
-
-		depended_files = map(lambda x: x.path, depended_filestamps)
-		module_depended_files = map(lambda x: x.path, module_depended_filestamps)
-
-		expected_depended_files = [
-			'__init__.py',
-			'dependencies/__init__.py',
-			'dependencies/dependency_test_fixture.py',
-			'dependencies/included1.py',
-			'dependencies/included2.py',
-			'dependencies/included3.py']
-
-		expected_module_depended_files = [
-			'__init__.py',
-			'dependencies/__init__.py',
-			'dependencies/module_dependency_test_fixture.py',
-			'dependencies/includeddir/__init__.py',
-			'dependencies/includeddir/thing.py']
-			
-		self.assertSetEqual(depended_files,        expected_depended_files)
-		self.assertSetEqual(module_depended_files, expected_module_depended_files)
-

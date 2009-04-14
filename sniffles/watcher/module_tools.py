@@ -69,8 +69,15 @@ def canonical_module_file(module_name, module_file_set):
 	the most like it is the actual source file for that module
 	"""
 	module_path = os.path.join(*str(module_name).split('.'))
-	for file_ in module_file_set:
-		if remove_extension(file_).endswith(module_path):
-			return file_
+	def file_matching_module_path(path):
+		for file_ in module_file_set:
+			if remove_extension(file_).endswith(path):
+				return file_
+		return None
+	file_ = file_matching_module_path(module_path)
+	if file_ is None:
+		file_ = file_matching_module_path(os.path.join(module_path, '__init__'))
+	if file_ is not None:
+		return file_
 	raise ValueError("module %s does not seem to have a canonical .py file in its module tree: %s" % (module_name, module_file_set))
 

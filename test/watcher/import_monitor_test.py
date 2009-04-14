@@ -14,10 +14,10 @@ class ImportMonitorTest(TestCase):
 		self.importer = None
 
 	def test_should_monitor_imports(self):
-		from ..fixture.dependencies.includeddir import thing
+		import sniffles.shared.const
 		imported_files = self.importer.imported
 		file_paths = map(lambda x: x.path, imported_files)
-		self.assertTrue('test/fixture/dependencies/includeddir/thing.py' in file_paths, file_paths)
+		self.assertTrue('sniffles/shared/const.py' in file_paths, file_paths)
 		self.importer.reset()
 		self.assertEqual(self.importer.imported, [])
 	
