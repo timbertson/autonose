@@ -27,5 +27,6 @@ setup(
 		'setuptools',
 		'nose',
 		'mandy',
+		'snakefood',
 	],
 )
