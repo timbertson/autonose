@@ -15,6 +15,9 @@ REMOVED = 'removed'
 ADDED = 'added'
 DEPENDENCIES = 'dependencies'
 
+def filesystem_state():
+	return DependencyScanner().scan(load_dependencies())
+
 def load_dependencies(base=None):
 	if base is None:
 		base = const.cwd

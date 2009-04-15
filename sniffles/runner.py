@@ -27,9 +27,7 @@ class Main(mandy.Command):
 		else:
 			logging.getLogger('sniffles').addHandler(NullHandler())
 		import scanner
-		dependencies = scanner.load_dependencies()
-		state = scanner.DependencyScanner().scan(dependencies)
-		scanner.save_dependencies(dependencies)
+		state = scanner.filesystem_state()
 		print '-'*80
 		for key, items in state.items():
 			print key
