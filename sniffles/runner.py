@@ -5,7 +5,7 @@ import mandy
 import os
 import logging
 
-from watcher import Watcher
+# from watcher import Watcher
 
 log = logging.getLogger(__name__)
 debug = log.debug
@@ -27,27 +27,14 @@ class Main(mandy.Command):
 		else:
 			logging.getLogger('sniffles').addHandler(NullHandler())
 		import scanner
-		import watcher
-		dependencies = watcher.load_dependencies()
-		all_stamps = self._flatten_filestamps(dependencies)
-		scanner.FSChanges(os.getcwd(), all_stamps).scan()
-		debug('-'*80)
-		watcher = Watcher()
-		watcher.enabled = True
-
-		testprog = nose.core.TestProgram(exit=False, plugins=[watcher], argv=['--debug=sniffles', '--verbose', '--with-sniffles'])
-		print repr(testprog.showPlugins())
-		# nose.run(plugins=[watcher], argv=['--debug=sniffles', '--verbose'])
-	
-	def _flatten_filestamps(self, dependencies):
-		all_stamps = []
-		print(dependencies)
-		for stamp_set in dependencies.values():
-			for stamp in stamp_set:
-				if stamp.path not in all_stamps:
-					all_stamps.append(stamp)
-		return all_stamps
-
+		dependencies = scanner.load_dependencies()
+		state = scanner.DependencyScanner().scan(dependencies)
+		scanner.save_dependencies(dependencies)
+		print '-'*80
+		for key, items in state.items():
+			print key
+			print items
+			print '='*20
 
 if __name__ == '__main__':
 	Main()

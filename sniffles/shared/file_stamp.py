@@ -1,9 +1,10 @@
 import os
-_cwd = os.getcwd()
+import file_util
+from const import cwd
 class FileStamp(object):
 	def __init__(self, path):
 		self.path = path
-		self.modtime = os.stat(os.path.join(_cwd, path)).st_mtime
+		self.modtime = self._get_modtime()
 	
 	def __str__(self):
 		return "%s@%s" % (self.path, self.modtime)
@@ -13,7 +14,7 @@ class FileStamp(object):
 
 	def __eq__(self, other):
 		if isinstance(other, self.__class__):
-			return self.path == other.path and self.modtime == other.modtime
+			return self.path == other.path
 		elif isinstance(other, str):
 			return self.path == other
 	
@@ -24,8 +25,15 @@ class FileStamp(object):
 		return hash(self.path)
 
 	def __cmp__(self, other):
-		if self.path != other.path:
-			return cmp(self.path, other.path)
-		return cmp(self.modtime, other.modtime)
+		return cmp(self.path, other.path)
+	
+	def _get_modtime(self):
+		return os.stat(file_util.absolute(self.path)).st_mtime
+	
+	def stale(self):
+		return self._get_modtime() != self.modtime
+	
+	def update(self):
+		self.modtime = self._get_modtime()
 
 
