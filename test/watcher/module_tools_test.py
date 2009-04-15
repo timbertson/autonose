@@ -45,7 +45,7 @@ class ModuleToolsTest(TestCase):
 				'path/to/sniffles/watcher/watcher.pyc'])
 		self.assertEqual(file_, 'path/to/sniffles/watcher/watcher.pyc')
 	
-	def test_should_fallback_to_a___init___file_if_one_exists(self):
+	def test_should_fallback_to_a___init___file(self):
 		file_ = canonical_module_file(
 			'sniffles.watcher',
 			[	'path/to/sniffles/__init__.pyc',
