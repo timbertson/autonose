@@ -30,22 +30,25 @@ class FileStampTest(TestCase):
 		newtime = time.time() + 10
 		os.utime(self.filename, (newtime, newtime))
 	
-	def test_should_not_equal_different_mtime(self):
+	def test_should_equal_filestamp_of_different_mtime(self):
 		oldest = FileStamp(self.filename)
 		self._touch()
 		newest = FileStamp(self.filename)
-		self.assertFalse(oldest == newest)
-		self.assertTrue(oldest != newest)
-	
-	def test_should_order_by_mtime(self):
-		oldest = FileStamp(self.filename)
-		self._touch()
-		newest = FileStamp(self.filename)
-		self.assertTrue(oldest < newest)
-		self.assertEqual([oldest, newest], sorted([newest, oldest]))
+		self.assertTrue(oldest == newest)
+		self.assertFalse(oldest != newest)
 	
 	def test_should_hash_by_path(self):
 		stamp = FileStamp(self.filename)
 		self.assertEqual(hash(stamp), hash(stamp.path))
+	
+	def test_should_check_staleness(self):
+		stamp = FileStamp(self.filename)
+		self._touch()
+		self.assertTrue(stamp.stale())
 
-
+	def test_should_update_mtime(self):
+		stamp = FileStamp(self.filename)
+		self._touch()
+		self.assertTrue(stamp.stale())
+		stamp.update()
+		self.assertFalse(stamp.stale())
