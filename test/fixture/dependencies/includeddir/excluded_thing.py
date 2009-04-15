@@ -1,1 +1,0 @@
-otherThingObject = 2
