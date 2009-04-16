@@ -4,6 +4,7 @@ import logging
 import os
 
 from shared import file_util
+import scanner
 
 log = logging.getLogger(__name__)
 debug = log.debug
@@ -15,10 +16,9 @@ class Watcher(nose.plugins.Plugin):
 	def __init__(self, state=None):
 		super(self.__class__, self).__init__()
 		if state is None:
-			import scanner
-			state = scanner.filesystem_state()
+			state = scanner.scan()
 		self.state = state
-		self.files_to_run = state['affected']
+		self.files_to_run = state.affected
 		debug(self.files_to_run)
 
 	def wantFile(self, filename):
@@ -27,6 +27,5 @@ class Watcher(nose.plugins.Plugin):
 			return False
 
 	def  finalize(self, result):
-		import scanner
-		scanner.save_dependencies(self.state['dependencies'])
+		scanner.save()
 

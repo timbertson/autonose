@@ -52,3 +52,7 @@ class FileStampTest(TestCase):
 		self.assertTrue(stamp.stale())
 		stamp.update()
 		self.assertFalse(stamp.stale())
+
+	def test_should_default_to_None_info(self):
+		self.assertEqual(FileStamp(self.filename).info, None)
+

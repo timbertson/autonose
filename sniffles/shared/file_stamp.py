@@ -2,6 +2,7 @@ import os
 import file_util
 from const import cwd
 class FileStamp(object):
+	info = None
 	def __init__(self, path):
 		self.path = path
 		self.modtime = self._get_modtime()
