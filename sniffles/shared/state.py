@@ -34,6 +34,12 @@ class FileSystemState(object):
 		return self._affected
 	affected = property(_get_affected)
 	
+	def __repr__(self):
+		def _repr(attr):
+			return "%s: %r" % (attr, getattr(self, attr))
+		internals = ', '.join(map(_repr, ('changed','added','removed','dependencies')))
+		return '<%s: (%s)>' % (self.__class__.__name__,internals)
+	
 	def _all_differences(self):
 		"""return all files that have been added, changed or deleted"""
 		return self.changed.union(self.added).union(self.removed)
@@ -116,6 +122,9 @@ class FileSystemState(object):
 			map(log.info, errors)
 		debug("found dependant files: %s" % (files,))
 		return files
+	
+	def __getitem__(self, name):
+		return self._get_key_reference(self.dependencies, name)
 	
 	@staticmethod
 	def _get_key_reference(dict_, key):

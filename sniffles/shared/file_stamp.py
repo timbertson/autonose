@@ -11,7 +11,7 @@ class FileStamp(object):
 		return "%s@%s" % (self.path, self.modtime)
 
 	def __repr__(self):
-		return "#<%s: %s>" % (self.__class__.__name__, self)
+		return "<%s: %s, info:%r>" % (self.__class__.__name__, self, self.info)
 
 	def __eq__(self, other):
 		if isinstance(other, self.__class__):
