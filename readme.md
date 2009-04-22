@@ -1,4 +1,4 @@
-# Sniffles - 'ze great plan:
+# Sniffles - The Plan:
 
 Sniffles is to be a python autotest-like tool. pyautotest already exists, but
 personally I've not had much luck with it, and by re-running everything all
@@ -106,9 +106,9 @@ More than likely, this display should simply feed off the third party hooks belo
 
 ## Priorities:
 
-1. watcher: plug into coverage module to detect tests run and which files they touch
-2. runner: file modification tracking
-3. runner: use watcher info to rerun tests
+1. [done] watcher: detect tests run and which files they touch
+2. [done] runner: file modification tracking
+3. [done] runner: use watcher info to rerun tests
 4. gui: basic terminal (curses) which basically just watches test run output,
    with a status line at the bottom
 5. runner: prioritising of tests-to-run
@@ -116,22 +116,11 @@ More than likely, this display should simply feed off the third party hooks belo
 7. GUI: cocoa? wx? gtk? tk? a ruddy AJAX page? so many options :/
 8. file system polling addons, prioritised
 
-## questions:
+## Current limitations:
 
-With the current setup, is there any way tests can slip through without being re-tested?
-
- - as long as the coverage stuff is solid and modules are simply included,
-   it shouldn't be able to.
- - integration tests that run shell scripts, multiple processes,
-   etc. are likely to slip through.
-   - is there any point trying to watch for things like
-     os.system or subprocess.Popen? probably not...
-
-picking and de-pickling: as long as it's just data objects, it should be immune to code
-changes. Should it all be just dicts and arrays, or is pickling rich object trees fine?
-
-How should the third part notifications work? Should they be in-memory python modules,
-or a file / named pipe? Maybe even a socket? The data doesn't need to be that rich, although
-some abstraction for colours may be necessary in report outputs. Kinda sounds like a
-html-or-xml format might be the best way for language neutrality.
-Or maybe just html snippets within yaml ;)
+The watcher currently does not do any import detection. I tried it, but it seems very complicated
+with lots of cases to cover. So for now, the scanner uses snakefood to statically determine
+dependencies. Note that this will only cover "import blah" statements, it will *not* catch any uses
+of the `__import__` function. Ultimately, I would like to use strace or something similar to determine
+(at runtime) *every file* that is touched by the test process (and any subprocesses). This is
+a big piece of work, so it will come after the rest of sniffles has proven itself to be useful.
