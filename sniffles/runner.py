@@ -27,11 +27,14 @@ class Main(mandy.Command):
 		else:
 			logging.getLogger('sniffles').addHandler(NullHandler())
 		import scanner
-		state = scanner.filesystem_state()
+		state = scanner.scan()
 		print '-'*80
-		for key, items in state.items():
+		attrs = ['changed','added','removed','affected']
+		for key in attrs:
 			print key
-			print items
+			items = getattr(state, key)
+			for item in items:
+				print repr(item)
 			print '='*20
 
 if __name__ == '__main__':
