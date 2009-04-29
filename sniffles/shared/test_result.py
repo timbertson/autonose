@@ -1,14 +1,7 @@
-
-class _state(object):
-	def __init__(self, description):
-		self.description = description
-	def __str__(self):  return str(self.description)
-	def __repr__(self): return repr(self.description)
-
-success = _state('success')
-fail = _state('fail')
-error = _state('error')
-skip = _state('skipped')
+success = 'success'
+fail = 'fail'
+error = 'error'
+skip = 'skipped'
 
 _all_states = set([success, fail, error, skip])
 _acceptable_states = set([success, skip])
@@ -26,27 +19,36 @@ class TestResultSet(object):
 	def _clean(self):
 		if len(self.results) == 0:
 			return
-		map(lambda x: x.time, self.results)
-		
+		print self.results
 		newest = max([result.time for result in self.results])
-		self.results = filter(lambda result: result.time >= newest, self.results)
+		self.results = filter(lambda result: result >= newest, self.results)
+	
+	def ok(self):
+		return all([result.ok() for result in self.results])
 	
 	def __repr__(self): return repr(self.results)
 	def __str__(self):  return str(self.results)
+	
+	def __eq__(self, other):
+		self.results == other.results
+	def __ne__(self, other):
+		not self == other
+	def __hash__(self):
+		hash(self.results)
 	
 
 class TestResult(object):
 	def __init__(self, state, test, err, time):
 		if state not in _all_states:
-			raise ValueError("state must be one of: %s" % (_all_states,))
+			raise ValueError("state \"%s\" is invalid. Must be one of: %s" %
+				(state, ', '.join(sorted(_all_states))))
 		self.state = state
 		self.name = str(test)
 		self.time = time
 		self.err = err
-		print(err)
 	
 	def ok(self):
-		self.state in _acceptable_states
+		return self.state in _acceptable_states
 	
 	def __str__(self):
 		if self.err:
@@ -55,3 +57,14 @@ class TestResult(object):
 	
 	def __repr__(self):
 		return "<TestResult: %s>" % (str(self),)
+	
+	def __eq__(self, other):
+		return (self.state == other.state and
+			self.name == other.name and
+			self.time == other.time and
+			self.err == other.err)
+
+	def __ne__(self, other):
+		return not self == other
+	def __hash__(self):
+		hash(self.state, self.name, self.time, self.err)

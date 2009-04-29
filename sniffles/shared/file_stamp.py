@@ -1,8 +1,10 @@
 import os
 import file_util
+from test_result import TestResultSet
 from const import cwd
+
 class FileStamp(object):
-	info = None
+	_info = None
 	def __init__(self, path):
 		self.path = path
 		self.modtime = self._get_modtime()
@@ -36,5 +38,18 @@ class FileStamp(object):
 	
 	def update(self):
 		self.modtime = self._get_modtime()
+		
+	def _get_info(self):
+		if self._info is None:
+			self._info = TestResultSet()
+		return self._info
+
+	def _set_info(self, info):
+		self._info = info
+	info = property(_get_info, _set_info)
+	
+	def ok(self):
+		return False if self._info is None else self._info.ok()
+	
 
 
