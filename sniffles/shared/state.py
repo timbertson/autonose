@@ -33,6 +33,10 @@ class FileSystemState(object):
 			self._propagate_changes()
 		return self._affected
 	affected = property(_get_affected)
+
+	def _get_bad(self):
+		return set(filter(lambda item: item.info.ok() is False, self.dependencies.keys()))
+	bad = property(_get_bad)
 	
 	def __repr__(self):
 		def _repr(attr):

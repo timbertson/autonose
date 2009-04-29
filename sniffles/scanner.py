@@ -13,10 +13,18 @@ state = None
 
 def load():
 	path = os.path.join(const.cwd, const.picklefile_name)
+	ret = None
 	try:
 		picklefile = open(path)
-		ret = pickle.load(picklefile)
-		picklefile.close()
+		try:
+			ret = pickle.load(picklefile)
+		except StandardError, e:
+			errmsg = "Failed loading \"%s\". you may have to delete it. %s: %s" % (const.picklefile_name, type(e).__name__, e.message)
+			log.error(errmsg, exc_info=1)
+			print >> sys.stderr, errmsg
+			sys.exit(1)
+		finally:
+			picklefile.close()
 		debug("loaded: %s" % (picklefile.name,))
 	except IOError:
 		debug("IOError:", exc_info=sys.exc_info())

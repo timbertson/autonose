@@ -15,15 +15,29 @@ from shared.test_result import TestResult, TestResultSet, success, skip, error, 
 class Watcher(nose.plugins.Plugin):
 	name = 'sniffles'
 	score = 800
+	enabled = False
+	env_opt = 'NOSE_SNIFFLES'
 	
 	def __init__(self, state=None):
-		super(self.__class__, self).__init__()
-		if state is None:
-			state = scanner.scan()
-		self.start_time = time.time()
 		self.state = state
-		self.files_to_run = state.affected
+		super(self.__class__, self).__init__()
+	
+	def _setup(self):
+		if self.state is None:
+			self.state = scanner.scan()
+		self.start_time = time.time()
+		self.files_to_run = set(self.state.affected).union(set(self.state.bad))
 		debug(self.files_to_run)
+
+	def options(self, parser, env=os.environ):
+		parser.add_option(
+			"--sniffles", action="store_true",
+			default=env.get(self.env_opt), dest="sniffles",
+			help="enable sniffles plugin")
+
+	def configure(self, options, conf):
+		if options.sniffles:
+			self.enabled = True
 
 	def wantFile(self, filename):
 		debug("want file %s? %s" % (filename, "NO" if (file_util.relative(filename) not in self.files_to_run) else "if you like..."))
@@ -41,11 +55,9 @@ class Watcher(nose.plugins.Plugin):
 
 	def _update_test(self, test, state, err=None):
 		debug("test finished: %s with state: %s" % (test, state))
-		result = TestResult(state, test, err, self.start_time)
+		result = TestResult(state, test, str(err), self.start_time)
 		
 		filestamp = self.state[self._test_file(test)]
-		if filestamp.info is None:
-			filestamp.info = TestResultSet()
 		filestamp.info.add(result)
 		self._current_test = None
 		debug(result)
