@@ -30,9 +30,9 @@ class TestResultSet(object):
 	def __str__(self):  return str(self.results)
 	
 	def __eq__(self, other):
-		self.results == other.results
+		return self.results == other.results
 	def __ne__(self, other):
-		not self == other
+		return not self == other
 	def __hash__(self):
 		hash(self.results)
 	
