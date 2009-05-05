@@ -3,6 +3,7 @@ import time
 from unittest import TestCase
 
 from sniffles.shared import FileStamp
+from sniffles.shared.test_result  import TestResultSet
 
 class FileStampTest(TestCase):
 	def setUp(self):
