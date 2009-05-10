@@ -108,6 +108,7 @@ More than likely, this display should simply feed off the third party hooks belo
 
 1. [done] watcher: detect tests run and which files they touch
 2. [done] runner: file modification tracking
+3. [done] watcher: only rerun tests relevant to changed files
 3. runner: use watcher info to rerun tests
 4. gui: basic terminal (curses) which basically just watches test run output,
    with a status line at the bottom

@@ -26,8 +26,10 @@ class Watcher(nose.plugins.Plugin):
 		if self.state is None:
 			self.state = scanner.scan()
 		self.start_time = time.time()
+		get_path = lambda x: x.path
 		self.files_to_run = set(self.state.affected).union(set(self.state.bad))
-		debug(self.files_to_run)
+		debug("changed files: %s" % (map(get_path, self.state.affected),))
+		debug("bad files: %s" % (map(get_path, self.state.bad),))
 
 	def options(self, parser, env=os.environ):
 		parser.add_option(
@@ -38,6 +40,7 @@ class Watcher(nose.plugins.Plugin):
 	def configure(self, options, conf):
 		if options.sniffles:
 			self.enabled = True
+			self._setup()
 
 	def wantFile(self, filename):
 		debug("want file %s? %s" % (filename, "NO" if (file_util.relative(filename) not in self.files_to_run) else "if you like..."))
@@ -55,7 +58,7 @@ class Watcher(nose.plugins.Plugin):
 
 	def _update_test(self, test, state, err=None):
 		debug("test finished: %s with state: %s" % (test, state))
-		result = TestResult(state, test, str(err), self.start_time)
+		result = TestResult(state, test, err, self.start_time)
 		
 		filestamp = self.state[self._test_file(test)]
 		filestamp.info.add(result)

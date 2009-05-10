@@ -49,7 +49,7 @@ class TestResultSetTest(TestCase):
 	def test_should_be_ok_with_no_test_cases(self):
 		trs = TestResultSet()
 		self.assertTrue(trs.ok())
-	
+		
 	def test_should_clear_all_non_newest_result_on_add(self):
 		old = self.result_mock(time=1).named('old')
 		new = self.result_mock(time=2).named('new')

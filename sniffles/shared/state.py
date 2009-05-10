@@ -59,6 +59,9 @@ class FileSystemState(object):
 				if len(self._affected.intersection(values)) > 0: # any item has changed
 					self._affected.add(key)
 					state_changed = True
+
+	def anything_changed(self):
+		return sum(map(len, (self.changed, self.added, self.removed))) > 0
 	
 	def update(self):
 		"""

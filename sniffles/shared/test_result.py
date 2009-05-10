@@ -45,14 +45,16 @@ class TestResult(object):
 		self.state = state
 		self.name = str(test)
 		self.time = time
-		self.err = err
+		# print repr(err)
+		# print '-'*80
+		self.err = None if err is None else str(err)
 	
 	def ok(self):
 		return self.state in _acceptable_states
 	
 	def __str__(self):
-		if self.err:
-			return str(self.err)
+		if self.err is not None:
+			return "error(%s): %s" % (type(self.err).__name__, self.err)
 		return "%s: %s@%s" % (self.state, self.name, self.time)
 	
 	def __repr__(self):
