@@ -45,8 +45,6 @@ class TestResult(object):
 		self.state = state
 		self.name = str(test)
 		self.time = time
-		# print repr(err)
-		# print '-'*80
 		self.err = None if err is None else str(err)
 	
 	def ok(self):

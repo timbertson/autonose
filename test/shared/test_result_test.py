@@ -3,16 +3,25 @@ from mocktest import *
 from sniffles.shared.test_result import TestResult, TestResultSet
 
 class TestResultTest(TestCase):
-	def test_should_store_state__name__time__and_err(self):
-		state, test, err, time = 'success', mock('test'), mock('error'), mock('time')
-		tr = TestResult(state, test, err, time)
-		self.assertEqual(tr.state, state)
-		self.assertEqual(tr.name, str(test))
-		self.assertEqual(tr.err, err)
-		self.assertEqual(tr.time, time)
+	def test_should_store_state(self):
+		state = 'success'
+		self.assertEqual(TestResult(state, None, None, None).state, state)
+		
+	def test_should_store_name_from_test(self):
+		test = mock('test').with_methods(__str__ = 'test_str')
+		self.assertEqual(TestResult('success', test.raw, None, None).name, 'test_str')
+		
+	def test_should_store_time(self):
+		time = stub('time')
+		self.assertEqual(TestResult('success', None, None, time).time, time)
+
+	def test_should_store_err(self):
+		err = mock('error').with_methods(__str__ = 'err')
+		self.assertEqual(TestResult('success', None, err.raw, None).err, 'err')
 
 	def test_should_not_convert_error_to_string_when_it_is_none(self):
-		self.assertTrue(TestResult(err=None).err is None)
+		err = None
+		self.assertTrue(TestResult('success', None, err, None).err is None)
 	
 	def test_should_validate_state(self):
 		self.assertRaises(ValueError, lambda: TestResult('notastate', None, None, None))
