@@ -5,4 +5,5 @@ dist
 *.pyc
 *.pickle
 *~
+*.swp
 
