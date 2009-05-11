@@ -35,14 +35,14 @@ class TestResultTest(TestCase):
 		self.assertFalse(TestResult('error', None, None, None).ok())
 	
 class TestResultSetTest(TestCase):
-	def result_mock(self, **kwargs):
-		opts = dict(time=0, ok=False)
-		opts.update(kwargs)
-		return mock().with_methods(**kwargs).unfrozen()
+	def result_mock(self, name=None, time=0, ok=False):
+		_mock = mock(name).with_children(time=time).unfrozen().with_methods(ok=ok)
+		print str(_mock.raw)
+		return _mock
 		
 	def test_should_not_be_ok_if_any_result_is_not(self):
-		ok1 = self.result_mock(ok = True).named('ok1')
-		ok2 = self.result_mock(ok = True).named('ok2')
+		ok1 = self.result_mock(ok = True, name='ok1')
+		ok2 = self.result_mock(ok = True, name='ok2')
 		not_ok = self.result_mock(ok = False)
 		trs = TestResultSet()
 		trs.add(ok1.raw)
@@ -62,11 +62,12 @@ class TestResultSetTest(TestCase):
 		trs = TestResultSet()
 		self.assertTrue(trs.ok())
 		
-	def test_should_clear_all_non_newest_result_on_add(self):
-		old = self.result_mock(time=1).named('old')
-		new = self.result_mock(time=2).named('new')
-		new2 = self.result_mock(time=2).named('new2')
+	def test_should_clear_all_non_newest_results_on_add(self):
+		old = self.result_mock(time=1, name='old')
+		new = self.result_mock(time=2, name='new')
+		new2 = self.result_mock(time=2, name='new2')
 		trs = TestResultSet()
+		
 		trs.add(old.raw)
 		self.assertEqual(trs.results, [old.raw])
 		trs.add(new.raw)

@@ -11,17 +11,18 @@ class TestResultSet(object):
 	a set of TestResult objects that only keeps results from the most recent set
 	(i.e the only results kept are those with the newest timestamp)
 	"""
-	results = []
+	def __init__(self):
+		self.results = []
+		
 	def add(self, result):
-		self._clean()
 		self.results.append(result)
+		self._clean()
 
 	def _clean(self):
-		if len(self.results) == 0:
+		if len(self.results) < 2:
 			return
-		print self.results
 		newest = max([result.time for result in self.results])
-		self.results = filter(lambda result: result >= newest, self.results)
+		self.results = filter(lambda result: result.time >= newest, self.results)
 	
 	def ok(self):
 		return all([result.ok() for result in self.results])
