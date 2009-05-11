@@ -2,6 +2,8 @@ import test_helper
 
 from mocktest import *
 
+#TODO: fill in all these tests!
+
 class WatcherTest(TestCase):
 	def test_should_be_enabled_when_given___sniffles_option(self):
 		pass
