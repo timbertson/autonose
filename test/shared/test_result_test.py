@@ -10,6 +10,9 @@ class TestResultTest(TestCase):
 		self.assertEqual(tr.name, str(test))
 		self.assertEqual(tr.err, err)
 		self.assertEqual(tr.time, time)
+
+	def test_should_not_convert_error_to_string_when_it_is_none(self):
+		self.assertTrue(TestResult(err=None).err is None)
 	
 	def test_should_validate_state(self):
 		self.assertRaises(ValueError, lambda: TestResult('notastate', None, None, None))
