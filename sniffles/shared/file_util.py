@@ -1,11 +1,14 @@
 import os
 from const import cwd
 
+class FileOutsideCurrentRoot(RuntimeError):
+	pass
+
 def relative(path):
 	realpath = os.path.realpath(path)
 	if realpath.startswith(cwd):
 		return realpath[len(cwd)+1:]
-	return None
+	raise FileOutsideCurrentRoot(realpath)
 
 def source(path):
 	return path[:-1] if ext(path) == 'pyc' else path

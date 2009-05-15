@@ -5,6 +5,7 @@ import os
 import time
 
 from shared import file_util
+from shared.file_util import FileOutsideCurrentRoot
 import scanner
 
 log = logging.getLogger(__name__)
@@ -26,10 +27,9 @@ class Watcher(nose.plugins.Plugin):
 		if self.state is None:
 			self.state = scanner.scan()
 		self.start_time = time.time()
-		get_path = lambda x: x.path
 		self.files_to_run = set(self.state.affected).union(set(self.state.bad))
-		debug("changed files: %s" % (map(get_path, self.state.affected),))
-		debug("bad files: %s" % (map(get_path, self.state.bad),))
+		debug("changed files: %s" % (self.state.affected,))
+		debug("bad files: %s" % (self.state.bad,))
 
 	def options(self, parser, env=os.environ):
 		parser.add_option(
@@ -37,31 +37,41 @@ class Watcher(nose.plugins.Plugin):
 			default=env.get(self.env_opt), dest="sniffles",
 			help="enable sniffles plugin")
 
-	def configure(self, options, conf):
+	def configure(self, options, conf=None):
 		if options.sniffles:
 			self.enabled = True
 			self._setup()
 
 	def wantFile(self, filename):
-		debug("want file %s? %s" % (filename, "NO" if (file_util.relative(filename) not in self.files_to_run) else "if you like..."))
-		if file_util.relative(filename) not in self.files_to_run:
+		try:
+			rel_file = file_util.relative(filename)
+		except FileOutsideCurrentRoot:
+			log.warning("ignoring file outside current root: %s" % (filename,))
 			return False
+		
+		debug("want file %s? %s" % (filename, "NO" if (rel_file not in self.files_to_run) else "if you like..."))
+		if rel_file not in self.files_to_run:
+			return False
+		return None # do nose's default behaviour
 	
 	def beforeTest(self, test):
 		self._current_test = test
 	
 	def _test_file(self, test):
 		file_path = test.address()[0]
+		print file_path
 		if not os.path.exists(file_path):
 			raise RuntimeError("test.address does not contain a valid file: %s" % (test.address(),))
 		return file_util.relative(file_util.source(file_path))
 
 	def _update_test(self, test, state, err=None):
 		debug("test finished: %s with state: %s" % (test, state))
-		result = TestResult(state, test, err, self.start_time)
-		
-		filestamp = self.state[self._test_file(test)]
-		filestamp.info.add(result)
+		try:
+			filestamp = self.state[self._test_file(test)]
+			result = TestResult(state, test, err, self.start_time)
+			filestamp.info.add(result)
+		except FileOutsideCurrentRoot:
+			log.warning('A test from outside the current root was run. The test is: %r' % (test))
 		self._current_test = None
 		debug(result)
 		
@@ -88,7 +98,7 @@ class Watcher(nose.plugins.Plugin):
 			self._addSkip(self._current_test)
 		debug('-'*80)
 
-	def finalize(self, result):
+	def finalize(self, result=None):
 		debug(self.state)
 		scanner.save()
 
