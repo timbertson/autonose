@@ -11,31 +11,6 @@ from sniffles.shared import file_util
 import time
 import os
 
-
-#TODO: move this matcher stuff into mocktest
-def matcher(matches, desc):
-	return type('Matcher', (Matcher,), {'matches':matches, 'desc': lambda self: desc})()
-
-class Matcher(object):
-	_desc = 'anonymous matcher'
-
-	def desc(self):
-		return self._desc
-
-	def __eq__(self, other):
-		return self.matches(other)
-	
-	def __call__(self, *args):
-		self.params = args
-	
-	def __str__(self):
-		return "Matcher for \"%s\"" % (self.desc(),)
-
-	def __repr__(self):
-		return "<#Matcher: %s>" % (self.desc(),)
-
-anything = matcher(lambda self, other: True, lambda self: 'any object')
-
 class WatcherTest(TestCase):
 	def test_should_be_enabled_when_given___sniffles_option(self):
 		watcher = Watcher()
@@ -131,7 +106,6 @@ class WatcherTest(TestCase):
 
 		self.assertEqual(watcher.wantFile(path.raw), False)
 	
-	@ignore("awaiting mocktest support for __getitem__")
 	def test_should_disregard_tests_from_outside_current_root(self):
 		state = mock('state')
 		path_ = mock('file')
@@ -142,21 +116,20 @@ class WatcherTest(TestCase):
 
 		# should not affect state
 		state.method('__getitem__').is_not_expected
-		self.assertEqual(watcher.wantFile(path.raw), False)
+		self.assertEqual(watcher.wantFile(path_.raw), False)
 	
-	@ignore("awaiting mocktest support for is_not_expected")
 	def test_should_attach_test_results_to_files(self):
 		start_time = 1234
 		
 		filesystem_state = mock('filesystem state').with_children(affected=[], bad=[])
 		file_stamp = mock('file stamp')
 		
-		rel_path = mock('relative source path')
+		rel_path = 'relative source path.py'
 		source_path = mock('source path')
 		test_address = mock('address')
 
 		new_test_result = mock('test result')
-		test = mock('test').with_children(address=[test_address.raw])
+		test = mock('test').with_methods(address=[test_address.raw])
 		test_state = mock('state')
 		err = mock('err')
 		
@@ -165,14 +138,14 @@ class WatcherTest(TestCase):
 		watcher._setup()
 
 		mock_on(os.path).exists.returning(True)
-		mock_on(file_util).source.with_(test_address).returning(source_path.raw)
-		mock_on(file_util).relative.with_(source_path.raw).returning(rel_path.raw)
+		mock_on(file_util).source.returning(source_path.raw)
+		mock_on(file_util).relative.with_(source_path.raw).returning(rel_path)
 		
-		mock_on(TestResult).__new__.is_expected.with_(test_state.raw, test.raw, err.raw, start_time).returning(new_test_result.raw)
+		mock_on(TestResult).__new__.is_expected.with_(any_(type), test_state.raw, test.raw, err.raw, start_time).returning(new_test_result.raw)
 		filesystem_state.expects('__getitem__').with_(rel_path).returning(file_stamp.raw)
 		file_stamp.child('info').expects('add').with_(new_test_result.raw)
 
-		watcher._update_test(test.raw, state.raw, err.raw)
+		watcher._update_test(test.raw, test_state.raw, err.raw)
 
 	def test_should_save_state_on_finalize(self):
 		state = mock('filesystem state')
