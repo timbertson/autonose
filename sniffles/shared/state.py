@@ -9,6 +9,7 @@ from const import cwd as base
 
 log = logging.getLogger(__name__)
 debug = log.debug
+info = log.info
 
 class FileSystemState(object):
 	def __init__(self, dependencies = {}):
@@ -50,6 +51,7 @@ class FileSystemState(object):
 	
 	def _propagate_changes(self):
 		#TODO: have a high-level output here to aid in debugging
+		get_path = lambda x: x.path
 		self._affected = self._all_differences()
 		state_changed = True
 		while state_changed:
@@ -58,6 +60,7 @@ class FileSystemState(object):
 				if key in self._affected: # already changed; ignore
 					continue
 				if len(self._affected.intersection(values)) > 0: # any item has changed
+					info("file did not change but is affected: %s (depends on: %s)" % (key, ", ".join(values)))
 					self._affected.add(key)
 					state_changed = True
 
@@ -81,7 +84,7 @@ class FileSystemState(object):
 				else:
 					debug("skipped non-python or non-cwd file: %s" % (file_,))
 		for removed_file in self.removed:
-			debug("removed: %s" % removed_file)
+			info("removed: %s" % removed_file)
 
 	def inspect(self, rel_path, known_exists = False):
 		if rel_path in self._seen:
@@ -101,7 +104,7 @@ class FileSystemState(object):
 			self._add(rel_path)
 	
 	def _add(self, rel_path):
-		debug("added: %s" % (rel_path))
+		info("added: %s" % (rel_path))
 		file_stamp = FileStamp(rel_path)
 		self.added.add(file_stamp)
 		self.dependencies[file_stamp] = self._get_dependencies(file_stamp)
@@ -110,7 +113,7 @@ class FileSystemState(object):
 		file_stamp = self._get_key_reference(self.dependencies, rel_path)
 		debug(file_stamp)
 		if file_stamp.stale():
-			debug("changed: %s" % (rel_path,))
+			info("changed: %s" % (rel_path,))
 			file_stamp.update()
 			self.changed.add(file_stamp)
 		else:

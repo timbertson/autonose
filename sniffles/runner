@@ -23,6 +23,7 @@ class Main(mandy.Command):
 		self.opt('clear', bool, default=False, opposite=False, desc='reset all dependency information')
 		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit')
 		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
+		self.opt('changes', bool, default=False, opposite=False, desc='show more info about what has changed')
 		self.opt('sleep-time', int, default=5, desc='sleep time (between filesystem scans)')
 		self.opt('config', str, default=None, desc='nosetests config file')
 	
@@ -43,6 +44,8 @@ class Main(mandy.Command):
 			self.nose_args.append('--config=%s' % (config_file))
 		if opts.debug:
 			self.nose_args.append('--debug=sniffles')
+		if opts.changes:
+			self.nose_args.append('--debug=sniffles.shared.state')
 		while True:
 			state = scanner.scan()
 			if state.anything_changed() or first_run:
