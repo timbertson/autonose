@@ -49,6 +49,7 @@ class FileSystemState(object):
 		return self.changed.union(self.added).union(self.removed)
 	
 	def _propagate_changes(self):
+		#TODO: have a high-level output here to aid in debugging
 		self._affected = self._all_differences()
 		state_changed = True
 		while state_changed:

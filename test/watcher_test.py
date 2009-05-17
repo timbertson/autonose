@@ -66,33 +66,45 @@ class WatcherTest(TestCase):
 		
 		self.assertEqual(watcher.files_to_run, bad.union(affected))
 
-	def test_should_update_test_when_run(self):
-		#TODO: deal with formatError & split these tests into 4
-		good = mock('good')
-		bad = mock('bad').with_children(plugins=mock('bad plugins').with_methods(formatFailure=None).raw)
-		bad_err = mock('bad_err')
-		ugly = mock('ugly').with_children(plugins=mock('ugly plugins').with_methods(formatError=None).raw)
-		ugly_err = mock('ugly_err')
-		skippy = mock('skippy')
+	def test_should_update_test_on_success(self):
 		watcher = Watcher()
-		
 		update_test = mock_on(watcher)._update_test
-		update_test.is_expected.exactly(4).times
+
+		good = mock('good')
 		
 		update_test.is_expected.once().with_(good.raw, test_result.success)
-		update_test.is_expected.once().with_(bad.raw, test_result.fail, bad_err.raw)
-		update_test.is_expected.once().with_(ugly.raw, test_result.error, ugly_err.raw)
-		update_test.is_expected.once().with_(skippy.raw, test_result.skip)
-		
 		watcher.beforeTest(good.raw)
 		watcher.addSuccess(good.raw)
-	
+
+	def test_should_update_test_on_failure(self):
+		watcher = Watcher()
+		update_test = mock_on(watcher)._update_test
+
+		bad = mock('bad').with_children(plugins=mock('bad plugins').with_methods(formatFailure=None).raw)
+		bad_err = mock('bad_err')
+
+		update_test.is_expected.once().with_(bad.raw, test_result.fail, bad_err.raw)
+
 		watcher.beforeTest(bad.raw)
 		watcher.addFailure(bad.raw, bad_err.raw)
-	
+
+	def test_should_update_test_on_error(self):
+		watcher = Watcher()
+		update_test = mock_on(watcher)._update_test
+
+		ugly = mock('ugly').with_children(plugins=mock('ugly plugins').with_methods(formatError=None).raw)
+		ugly_err = mock('ugly_err')
+		update_test.is_expected.once().with_(ugly.raw, test_result.error, ugly_err.raw)
+
 		watcher.beforeTest(ugly.raw)
 		watcher.addError(ugly.raw, ugly_err.raw)
 
+	def test_should_update_test_on_skip(self):
+		watcher = Watcher()
+		update_test = mock_on(watcher)._update_test
+
+		skippy = mock('skippy')
+		update_test.is_expected.once().with_(skippy.raw, test_result.skip)
 		watcher.beforeTest(skippy.raw)
 		watcher.afterTest(skippy.raw)
 	
