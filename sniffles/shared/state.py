@@ -9,7 +9,9 @@ from const import cwd as base
 
 log = logging.getLogger(__name__)
 debug = log.debug
-info = log.info
+info = logging.getLogger(__name__ + '.summary').info
+
+def get_path(item): return item.path
 
 class FileSystemState(object):
 	def __init__(self, dependencies = {}):
@@ -50,8 +52,6 @@ class FileSystemState(object):
 		return self.changed.union(self.added).union(self.removed)
 	
 	def _propagate_changes(self):
-		#TODO: have a high-level output here to aid in debugging
-		get_path = lambda x: x.path
 		self._affected = self._all_differences()
 		state_changed = True
 		while state_changed:
@@ -60,9 +60,13 @@ class FileSystemState(object):
 				if key in self._affected: # already changed; ignore
 					continue
 				if len(self._affected.intersection(values)) > 0: # any item has changed
-					info("file did not change but is affected: %s (depends on: %s)" % (key, ", ".join(values)))
+					info("affected: %s (depends on: %s)" % (
+						get_path(key),
+						", ".join(map(get_path, self._affected.intersection(values)))))
 					self._affected.add(key)
 					state_changed = True
+		if len(self._affected) > 0:
+			info("all affected files:    \n%s" % ("\n".join(["  %s" % (get_path(item),) for item in sorted(self._affected)]),))
 
 	def anything_changed(self):
 		return sum(map(len, (self.changed, self.added, self.removed))) > 0
@@ -84,7 +88,8 @@ class FileSystemState(object):
 				else:
 					debug("skipped non-python or non-cwd file: %s" % (file_,))
 		for removed_file in self.removed:
-			info("removed: %s" % removed_file)
+			info("removed: %s" % removed_file.path)
+			del self.dependencies[removed_file.path]
 
 	def inspect(self, rel_path, known_exists = False):
 		if rel_path in self._seen:

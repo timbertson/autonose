@@ -11,7 +11,8 @@ setup(
 	long_description="test tracker for nosetests",
 	packages = find_packages(exclude=['test', 'test.*']),
 	entry_points = {
-		'nose.plugins.0.10': ['sniffles = sniffles:Watcher']
+		'nose.plugins.0.10': ['sniffles = sniffles:Watcher'],
+		'console_scripts':   ['autonose = sniffles.main',
 	},
 	classifiers=[
 		"License :: OSI Approved :: BSD License",
@@ -23,6 +24,7 @@ setup(
 	],
 	keywords='test nosetests nose nosetest autotest auto runner',
 	license='BSD',
+	zip_safe=True,
 	install_requires=[
 		'setuptools',
 		'nose',

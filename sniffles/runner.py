@@ -23,8 +23,8 @@ class Main(mandy.Command):
 		self.opt('clear', bool, default=False, opposite=False, desc='reset all dependency information')
 		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit')
 		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
-		self.opt('changes', bool, default=False, opposite=False, desc='show more info about what has changed')
-		self.opt('sleep-time', int, default=5, desc='sleep time (between filesystem scans)')
+		self.opt('changelog', bool, default=False, opposite=False, desc='show more info about what files have changed')
+		self.opt('wait', int, default=5, desc='sleep time (between filesystem scans)')
 		self.opt('config', str, default=None, desc='nosetests config file')
 	
 	def run(self, opts):
@@ -36,7 +36,7 @@ class Main(mandy.Command):
 
 		if opts.debug:
 			self.info()
-		sleep_time = opts['sleep-time']
+		sleep_time = opts.wait
 		first_run = True
 		config_file = opts.config
 		self.nose_args = ['--sniffles']
@@ -44,8 +44,8 @@ class Main(mandy.Command):
 			self.nose_args.append('--config=%s' % (config_file))
 		if opts.debug:
 			self.nose_args.append('--debug=sniffles')
-		if opts.changes:
-			self.nose_args.append('--debug=sniffles.shared.state')
+		elif opts.changelog:
+			self.nose_args.append('--debug=sniffles.shared.state.summary')
 		while True:
 			state = scanner.scan()
 			if state.anything_changed() or first_run:
@@ -70,7 +70,6 @@ class Main(mandy.Command):
 	def clear(self):
 		print "\n" * 80
 		subprocess.call('clear')
-
 	
 	def info(self):
 		state = scanner.scan()
@@ -84,9 +83,13 @@ class Main(mandy.Command):
 			print '='*20
 
 
-if __name__ == '__main__':
+def main(argv=None):
 	try:
 		Main()
 		sys.exit(0)
 	except KeyboardInterrupt:
 		sys.exit(1)
+
+if __name__ == '__main__':
+	main()
+
