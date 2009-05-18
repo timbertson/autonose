@@ -4,10 +4,13 @@ from const import cwd
 class FileOutsideCurrentRoot(RuntimeError):
 	pass
 
-def relative(path):
+_default = object()
+def relative(path, default=_default):
 	realpath = os.path.realpath(path)
 	if realpath.startswith(cwd):
 		return realpath[len(cwd)+1:]
+	if default is not _default:
+		return default
 	raise FileOutsideCurrentRoot(realpath)
 
 def source(path):

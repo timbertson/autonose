@@ -1,6 +1,6 @@
 from mocktest import *
 
-from sniffles.shared.test_result import TestResult, TestResultSet
+from autonose.shared.test_result import TestResult, TestResultSet
 
 class TestResultTest(TestCase):
 	def test_should_store_state(self):

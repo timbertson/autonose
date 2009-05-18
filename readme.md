@@ -1,10 +1,10 @@
-# Sniffles - The Plan:
+# Autonose - The Plan:
 
-Sniffles is to be a python autotest-like tool. pyautotest already exists, but
+Autonose is to be a python autotest-like tool. pyautotest already exists, but
 personally I've not had much luck with it, and by re-running everything all
 the time, it doesn't really scale to larger projects.
 
-The aim of sniffles is to be trustable - aside from some well known shortcomings,
+The aim of autonose is to be trustable - aside from some well known shortcomings,
 it should be able to give you high confidence that its cached test results
 are in fact the current state of your test base. It will accomplish this by
 runtime coverage checking, to determine all code files that could cause
@@ -20,8 +20,7 @@ system should be simple enough and well documented to enable others to
 build on top of it.
 
 It will depend on nosetests, because nosetests is awesome and ought to make
-the watcher pretty simple. Also, it would be silly if we had `sniffles`
-without a `nose` ;)
+the watcher pretty simple.
 
 Here is the component breakdown:
 
@@ -48,9 +47,9 @@ behaviour:
     - checking most recently modified files first
     - user input? This should force a re-test, not just a modtime check
       - maybe a user could even append the location of a modified
-        file to some file/named pipe which sniffles is continually reading.
+        file to some file/named pipe which autonose is continually reading.
         Not that brilliant, but it allows for 3rd party os os-specififc
-        extensions to easily inform sniffles of changed files
+        extensions to easily inform autonose of changed files
         (i.e a simple spotlight or inotify script)
 
   - when a file modification or deletion is detected:
@@ -109,9 +108,10 @@ More than likely, this display should simply feed off the third party hooks belo
 1. [done] watcher: detect tests run and which files they touch
 2. [done] runner: file modification tracking
 3. [done] watcher: only rerun tests relevant to changed files
-3. runner: use watcher info to rerun tests
+3. [done] runner: use watcher info to rerun tests
 4. gui: basic terminal (curses) which basically just watches test run output,
    with a status line at the bottom
+2. runner: *proper* file modification tracking (dynamic, instead of static)
 5. runner: prioritising of tests-to-run
 6. hooks for third parties
 7. GUI: cocoa? wx? gtk? tk? a ruddy AJAX page? so many options :/
@@ -124,4 +124,4 @@ with lots of cases to cover. So for now, the scanner uses snakefood to staticall
 dependencies. Note that this will only cover "import blah" statements, it will *not* catch any uses
 of the `__import__` function. Ultimately, I would like to use strace or something similar to determine
 (at runtime) *every file* that is touched by the test process (and any subprocesses). This is
-a big piece of work, so it will come after the rest of sniffles has proven itself to be useful.
+a big piece of work, so it will come after the rest of autonose has proven itself to be useful.

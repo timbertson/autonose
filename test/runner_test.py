@@ -5,7 +5,7 @@ from mocktest import *
 #TODO: fill in all these tests!
 
 class RunnerTest(TestCase):
-	def test_should_run_nose_with_sniffles_enabled(self):
+	def test_should_run_nose_with_autonose_enabled(self):
 		pass
 	
 	def test_should_run_nose_with_debug(self):

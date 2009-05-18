@@ -2,17 +2,17 @@
 
 from setuptools import *
 setup(
-	name='sniffles',
+	name='autonose',
 	version='0.0.1',
-	author_email='tim3d.junk+sniffles@gmail.com',
+	author_email='tim3d.junk+autonose@gmail.com',
 	author='Tim Cuthbertson',
-	url='http://github.com/gfxmonk/sniffles/tree',
+	url='http://github.com/gfxmonk/autonose/tree',
 	description="test tracker for nosetests",
 	long_description="test tracker for nosetests",
 	packages = find_packages(exclude=['test', 'test.*']),
 	entry_points = {
-		'nose.plugins.0.10': ['sniffles = sniffles:Watcher'],
-		'console_scripts':   ['autonose = sniffles.main',
+		'nose.plugins.0.10': ['autonose = autonose:Watcher'],
+		'console_scripts':   ['autonose = autonose.main'],
 	},
 	classifiers=[
 		"License :: OSI Approved :: BSD License",

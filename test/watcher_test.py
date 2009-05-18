@@ -1,55 +1,55 @@
 import test_helper
 
 from mocktest import *
-from sniffles.watcher import Watcher
-from sniffles import scanner
-from sniffles.shared.test_result import TestResult
-from sniffles.shared import test_result
-from sniffles import watcher as watcher_module
+from autonose.watcher import Watcher
+from autonose import scanner
+from autonose.shared.test_result import TestResult
+from autonose.shared import test_result
+from autonose import watcher as watcher_module
 
-from sniffles.shared import file_util
+from autonose.shared import file_util
 import time
 import os
 
 class WatcherTest(TestCase):
-	def test_should_be_enabled_when_given___sniffles_option(self):
+	def test_should_be_enabled_when_given___autonose_option(self):
 		watcher = Watcher()
 		self.assertFalse(watcher.enabled)
-		config = mock('config').with_children(sniffles=True)
+		config = mock('config').with_children(autonose=True)
 		watcher.configure(config.raw)
 		mock_on(watcher)._setup
 		self.assertTrue(watcher.enabled)
 	
-	def test_should_be_enabled_when_NOSE_SNIFFLES_is_set(self):
+	def test_should_be_enabled_when_AUTO_NOSE_is_set(self):
 		watcher = Watcher()
 		self.assertFalse(watcher.enabled)
-		environ = {'NOSE_SNIFFLES':True}
+		environ = {'AUTO_NOSE':True}
 		parser = mock('parser')
 		parser.expects('add_option').with_(
-			'--sniffles',
+			'--autorun',
 			action='store_true',
 			default=True,
-			dest='sniffles',
+			dest='autonose',
 			help=anything)
 		watcher.options(parser.raw, environ)
 
-	def test_should_not_be_enabled_when_NOSE_SNIFFLES_is_set(self):
+	def test_should_not_be_enabled_when_AUTO_NOSE_is_not_set(self):
 		watcher = Watcher()
 		self.assertFalse(watcher.enabled)
-		environ = {'NOSE_SNIFFLES':False}
+		environ = {}
 		parser = mock('parser')
 		parser.expects('add_option').with_(
-			'--sniffles',
+			'--autorun',
 			action='store_true',
 			default=False,
-			dest='sniffles',
+			dest='autonose',
 			help=anything)
 		watcher.options(parser.raw, environ)
 
 	def test_should_scan_for_state_if_not_given_any(self):
 		watcher = Watcher()
 		state = mock('state').with_children(good=[],bad=[],affected=[])
-		config = mock('config').with_children(sniffles=True)
+		config = mock('config').with_children(autonose=True)
 		mock_on(watcher_module).scanner.expects('scan').once().returning(state.raw)
 		watcher.configure(config.raw)
 	
@@ -60,7 +60,7 @@ class WatcherTest(TestCase):
 		changed = set([7,8,9])
 		affected = set([10,11,12])
 		state = mock('state').with_children(good=good, bad=bad, changed=changed, affected=affected)
-		config = mock('config').with_children(sniffles=True)
+		config = mock('config').with_children(autonose=True)
 		mock_on(watcher_module).scanner.expects('scan').once().returning(state.raw)
 		watcher.configure(config.raw)
 		

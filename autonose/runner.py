@@ -32,20 +32,20 @@ class Main(mandy.Command):
 		if opts.debug:
 			logging.basicConfig(level=logging.DEBUG)
 		else:
-			logging.getLogger('sniffles').addHandler(NullHandler())
+			logging.getLogger('autonose').addHandler(NullHandler())
 
 		if opts.debug:
 			self.info()
 		sleep_time = opts.wait
 		first_run = True
 		config_file = opts.config
-		self.nose_args = ['--sniffles']
+		self.nose_args = ['--autorun']
 		if config_file is not None:
 			self.nose_args.append('--config=%s' % (config_file))
 		if opts.debug:
-			self.nose_args.append('--debug=sniffles')
+			self.nose_args.append('--debug=autonose')
 		elif opts.changelog:
-			self.nose_args.append('--debug=sniffles.shared.state.summary')
+			self.nose_args.append('--debug=autonose.shared.state.summary')
 		while True:
 			state = scanner.scan()
 			if state.anything_changed() or first_run:

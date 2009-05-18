@@ -14,10 +14,10 @@ debug = log.debug
 from shared.test_result import TestResult, TestResultSet, success, skip, error, fail
 
 class Watcher(nose.plugins.Plugin):
-	name = 'sniffles'
+	name = 'autonose'
 	score = 800
 	enabled = False
-	env_opt = 'NOSE_SNIFFLES'
+	env_opt = 'AUTO_NOSE'
 	
 	def __init__(self, state=None):
 		self.state = state
@@ -33,12 +33,12 @@ class Watcher(nose.plugins.Plugin):
 
 	def options(self, parser, env=os.environ):
 		parser.add_option(
-			"--sniffles", action="store_true",
-			default=env.get(self.env_opt), dest="sniffles",
-			help="enable sniffles plugin")
+			"--autorun", action="store_true",
+			default=env.get(self.env_opt, False), dest="autonose",
+			help="enable autonose plugin")
 
 	def configure(self, options, conf=None):
-		if options.sniffles:
+		if options.autonose:
 			self.enabled = True
 			self._setup()
 

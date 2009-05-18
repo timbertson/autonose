@@ -126,7 +126,7 @@ class FileSystemState(object):
 
 	def _get_dependencies(self, file_stamp):
 		paths = self._get_direct_dependency_paths(file_stamp.path)
-		rel_paths = [FileStamp(file_util.relative(path)) for path in paths if file_util.relative(path) is not None]
+		rel_paths = [FileStamp(file_util.relative(path)) for path in paths if file_util.relative(path, None) is not None]
 		debug("rel_paths: %s" % (rel_paths))
 		return rel_paths
 
