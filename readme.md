@@ -1,4 +1,37 @@
-# Autonose - The Plan:
+# Autonose
+
+Autonose is an autotest-like tool for python, using the excellent nosetest
+library.
+
+Currently, autotest will track filesystem changes and automatically re-run
+any changed tests or dependencies whenever a file is added, removed or
+updated. A file counts as changed if it has been modified; or if any file
+it `import`s has changed.
+
+### Using it:
+
+	$ easy_install autonose
+	autonose
+
+It's really that simple. try `autonose --help` for configuration options.
+
+### Current Status
+
+Autotest does not (currently):
+
+ - understand dynamic imports (use of `__import__`)
+ - track any file types other than `.py`
+ - have a fancy GUI. When your files change, it clears the screen
+   and then runs nose over any affected files. I it works well with
+   `rednose`, a nosetest formatting plugin I wrote.
+ - detect filesystem changes instantly (inotify-style). This is not an
+   issue for small codebases, but could be for larger ones.
+
+All of these points are at various stages of being worked on; below for
+the grand plan.
+
+
+# - The Plan:
 
 Autonose is to be a python autotest-like tool. pyautotest already exists, but
 personally I've not had much luck with it, and by re-running everything all
