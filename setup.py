@@ -12,7 +12,7 @@ setup(
 	packages = find_packages(exclude=['test', 'test.*']),
 	entry_points = {
 		'nose.plugins.0.10': ['autonose = autonose:Watcher'],
-		'console_scripts':   ['autonose = autonose.main'],
+		'console_scripts':   ['autonose = autonose:main'],
 	},
 	classifiers=[
 		"License :: OSI Approved :: BSD License",
