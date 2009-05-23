@@ -70,10 +70,10 @@ class Watcher(nose.plugins.Plugin):
 			filestamp = self.state[self._test_file(test)]
 			result = TestResult(state, test, err, self.start_time)
 			filestamp.info.add(result)
+			debug(result)
 		except FileOutsideCurrentRoot:
 			log.warning('A test from outside the current root was run. The test is: %r' % (test))
 		self._current_test = None
-		debug(result)
 		
 	def addSuccess(self, test):
 		self._update_test(test, success)
