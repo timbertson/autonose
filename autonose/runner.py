@@ -26,6 +26,7 @@ class Main(mandy.Command):
 		self.opt('changelog', bool, default=False, opposite=False, desc='show more info about what files have changed')
 		self.opt('wait', int, default=5, desc='sleep time (between filesystem scans)')
 		self.opt('config', str, default=None, desc='nosetests config file')
+		self.opt('curses', bool, default=False, desc='use the curses interface')
 	
 	def run(self, opts):
 		self.opts = opts
@@ -39,6 +40,10 @@ class Main(mandy.Command):
 		sleep_time = opts.wait
 		first_run = True
 		config_file = opts.config
+		self.ui = None
+		if opts.curses:
+			from ui.terminal import Terminal
+			self.ui = Terminal()
 		self.nose_args = ['--autorun']
 		if config_file is not None:
 			self.nose_args.append('--config=%s' % (config_file))
@@ -46,15 +51,19 @@ class Main(mandy.Command):
 			self.nose_args.append('--debug=autonose')
 		elif opts.changelog:
 			self.nose_args.append('--debug=autonose.shared.state.summary')
-		while True:
-			state = scanner.scan()
-			if state.anything_changed() or first_run:
-				first_run = False
-				self.run_with_state(state)
-			if opts.once:
-				break
-			debug("sleeping (%s)..." % (sleep_time,))
-			time.sleep(sleep_time)
+		try:
+			while True:
+				state = scanner.scan()
+				if state.anything_changed() or first_run:
+					first_run = False
+					self.run_with_state(state)
+				if opts.once:
+					break
+				debug("sleeping (%s)..." % (sleep_time,))
+				time.sleep(sleep_time)
+		finally:
+			if self.ui is not None:
+				self.ui.finalize()
 	
 	def run_with_state(self, state):
 		debug("running with %s affected files..." % (len(state.affected)))
