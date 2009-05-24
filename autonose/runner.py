@@ -6,10 +6,9 @@ import os
 import sys
 import time
 import logging
-import subprocess
 
 import scanner
-from watcher import Watcher
+import watcher
 
 log = logging.getLogger(__name__)
 debug = log.debug
@@ -23,63 +22,72 @@ class Main(mandy.Command):
 		self.opt('clear', bool, default=False, opposite=False, desc='reset all dependency information')
 		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit')
 		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
-		self.opt('changelog', bool, default=False, opposite=False, desc='show more info about what files have changed')
+		self.opt('info', bool, default=False, opposite=False, desc='show more info about what files have changed')
 		self.opt('wait', int, default=5, desc='sleep time (between filesystem scans)')
 		self.opt('config', str, default=None, desc='nosetests config file')
 		self.opt('curses', bool, default=False, desc='use the curses interface')
 	
 	def run(self, opts):
 		self.opts = opts
-		if opts.debug:
-			logging.basicConfig(level=logging.DEBUG)
-		else:
-			logging.getLogger('autonose').addHandler(NullHandler())
-
-		if opts.debug:
-			self.info()
-		sleep_time = opts.wait
+		self.init_logging()
+		self.init_nose_args()
+		self.init_ui()
+		self.save_init_modules()
+		self.run_loop()
+	
+	def run_loop(self):
 		first_run = True
-		config_file = opts.config
-		self.ui = None
-		if opts.curses:
-			from ui.terminal import Terminal
-			self.ui = Terminal()
-		self.nose_args = ['--autorun']
-		if config_file is not None:
-			self.nose_args.append('--config=%s' % (config_file))
-		if opts.debug:
-			self.nose_args.append('--debug=autonose')
-		elif opts.changelog:
-			self.nose_args.append('--debug=autonose.shared.state.summary')
 		try:
 			while True:
 				state = scanner.scan()
 				if state.anything_changed() or first_run:
 					first_run = False
+					watcher.global_state = state
 					self.run_with_state(state)
-				if opts.once:
+				if self.opts.once:
 					break
-				debug("sleeping (%s)..." % (sleep_time,))
-				time.sleep(sleep_time)
+				debug("sleeping (%s)..." % (self.opts.wait,))
+				time.sleep(self.opts.wait)
 		finally:
 			if self.ui is not None:
 				self.ui.finalize()
 	
+	def init_logging(self):
+		if self.opts.debug:
+			logging.basicConfig(level=logging.DEBUG)
+			self.info()
+		elif self.opts.info:
+			logging.basicConfig(level=logging.INFO)
+		else:
+			logging.getLogger().addHandler(NullHandler())
+
+	def init_nose_args(self):
+		self.nose_args = ['nosetests','--autorun']
+		if self.opts.config is not None:
+			self.nose_args.append('--config=%s' % (self.opts.config))
+
+	def save_init_modules(self):
+		self._sys_modules = set(sys.modules.keys())
+
+	def restore_init_modules(self):
+		for modname in set(sys.modules.keys()).difference(self._sys_modules):
+			del(sys.modules[modname])
+
+	def init_ui(self):
+		self.ui = None
+		if self.opts.curses:
+			from ui.terminal import Terminal
+			self.ui = Terminal()
+		else:
+			from ui.basic import Basic
+			self.ui = Basic()
+	
 	def run_with_state(self, state):
 		debug("running with %s affected files..." % (len(state.affected)))
-		self.clear()
-		self.timestamp()
-		#todo: run this in-process (currently it doesn't seem to reload tested modules properly...)
-		subprocess.call(['nosetests'] + self.nose_args)
+		self.restore_init_modules()
+		self.ui.begin_new_run(time.localtime())
+		nose.run(argv=self.nose_args)
 
-	def timestamp(self):
-		print >> sys.stderr, "# Running tests at %s  " % (time.strftime("%H:%m:%S"))
-		print >> sys.stderr, ""
-	
-	def clear(self):
-		print "\n" * 80
-		subprocess.call('clear')
-	
 	def info(self):
 		state = scanner.scan()
 		print '-'*80

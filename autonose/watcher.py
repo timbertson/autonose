@@ -10,8 +10,12 @@ import scanner
 
 log = logging.getLogger(__name__)
 debug = log.debug
+info = log.info
 
 from shared.test_result import TestResult, TestResultSet, success, skip, error, fail
+def get_paths(*items): return '\n'.join([x.path for x in items])
+
+global_state = None
 
 class Watcher(nose.plugins.Plugin):
 	name = 'autonose'
@@ -25,11 +29,14 @@ class Watcher(nose.plugins.Plugin):
 	
 	def _setup(self):
 		if self.state is None:
-			self.state = scanner.scan()
+			if global_state is not None:
+				self.state = global_state
+			else:
+				self.state = scanner.scan()
 		self.start_time = time.time()
 		self.files_to_run = set(self.state.affected).union(set(self.state.bad))
-		debug("changed files: %s" % (self.state.affected,))
-		debug("bad files: %s" % (self.state.bad,))
+		info("changed files: %s" % (get_paths(*self.state.affected),))
+		info("bad files: %s" % (get_paths(*self.state.bad),))
 
 	def options(self, parser, env=os.environ):
 		parser.add_option(
@@ -59,7 +66,6 @@ class Watcher(nose.plugins.Plugin):
 	
 	def _test_file(self, test):
 		file_path = test.address()[0]
-		print file_path
 		if not os.path.exists(file_path):
 			raise RuntimeError("test.address does not contain a valid file: %s" % (test.address(),))
 		return file_util.relative(file_util.source(file_path))
@@ -101,4 +107,4 @@ class Watcher(nose.plugins.Plugin):
 	def finalize(self, result=None):
 		debug(self.state)
 		scanner.save()
-
+	
