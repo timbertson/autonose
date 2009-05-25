@@ -26,6 +26,7 @@ class Main(mandy.Command):
 		self.opt('wait', int, default=5, desc='sleep time (between filesystem scans)')
 		self.opt('config', str, default=None, desc='nosetests config file')
 		self.opt('curses', bool, default=False, desc='use the curses interface')
+		self.opt('osx', bool, default=False, desc='use the cocoa interface')
 	
 	def run(self, opts):
 		self.opts = opts
@@ -72,15 +73,18 @@ class Main(mandy.Command):
 	def restore_init_modules(self):
 		for modname in set(sys.modules.keys()).difference(self._sys_modules):
 			del(sys.modules[modname])
-
+	
 	def init_ui(self):
 		self.ui = None
 		if self.opts.curses:
 			from ui.terminal import Terminal
-			self.ui = Terminal()
+			self.ui = Terminal(self.nose_args)
+		elif self.opts.osx:
+			from ui.cocoa import Cocoa
+			self.ui = Cocoa(self.nose_args)
 		else:
 			from ui.basic import Basic
-			self.ui = Basic()
+			self.ui = Basic(self.nose_args)
 	
 	def run_with_state(self, state):
 		debug("running with %s affected files..." % (len(state.affected)))

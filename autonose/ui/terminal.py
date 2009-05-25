@@ -78,7 +78,7 @@ class DoNothing(object):
 	def __call__(self, *args): pass
 
 class Terminal(object):
-	def __init__(self):
+	def __init__(self, nose_args=None):
 		sys.stdout = sys.stderr = OutputProxy(self)
 		self.last_run_time = time.localtime()
 		self.testinfo = {}
