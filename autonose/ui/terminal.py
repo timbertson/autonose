@@ -7,8 +7,40 @@ import termstyle
 
 import sys
 
+_logfile = open('.curses-log','w')
+def log(s):
+	_logfile.write(s + '\n')
+
+class obj(object): pass
+col = obj()
+col.transparent = -1
+def init_colors():
+	global col
+	i = 0
+	cols = {
+		'red':curses.COLOR_RED,
+		'green':curses.COLOR_GREEN,
+		'blue':curses.COLOR_BLUE,
+		'black': curses.COLOR_BLACK,
+		'yellow': curses.COLOR_YELLOW,
+		'cyan': curses.COLOR_CYAN,
+		'magenta': curses.COLOR_MAGENTA,
+		'white': curses.COLOR_WHITE,
+	}
+	for name, fg in cols.items():
+		curses.init_pair(i, fg, col.transparent)
+		setattr(col, name, i)
+		i += 1
+		if i > curses.COLORS:
+			raise RuntimeError(
+				"not enough colours! (wanted %s, but there are only %s available)" %
+				(len(cols), curses.COLORS))
+	
 def _start():
 	window = curses.initscr()
+	curses.start_color()
+	curses.use_default_colors()
+	init_colors()
 	curses.cbreak()
 	curses.noecho()
 	window.keypad(1)
@@ -28,10 +60,12 @@ class OutputProxy(object):
 	def write(self, s):
 		self._line += s
 		if '\n' in self._line:
-			map(self.proxy.writeln, self._line.split('\n'))
+			log("writeln_map: %r" % (self._line.splitlines(),))
+			map(self.proxy.writeln, self._line.splitlines())
 			self._line = ''
 	
 	def writeln(self, s=''):
+		log('writeln: %r' % (s))
 		if not s.endswith('\n'):
 			s = s + '\n'
 		self.write(s)
@@ -46,14 +80,13 @@ class DoNothing(object):
 class Terminal(object):
 	def __init__(self):
 		sys.stdout = sys.stderr = OutputProxy(self)
-		self._logfile = open('.curses-log','w')
 		self.last_run_time = time.localtime()
 		self.testinfo = {}
 		self.window = _start()
 		self.current_line = 0
 		self._size()
 		self._redraw()
-
+	
 	def begin_new_run(self, current_time=None):
 		if current_time is None:
 			current_time = self.last_run_time
@@ -70,14 +103,14 @@ class Terminal(object):
 			pass
 	
 	def writeln(self, s):
-		self.window.addstr(self.current_line, 0, s)
-		self._logfile.write(s + '\n')
+		self.window.addstr(self.current_line, 0, s, curses.color_pair(col.green))
 		self.current_line += 1
 		self._redraw()
 	
 	def finalize(self):
+		time.sleep(1)
 		_stop(self.window)
-		self._logfile.close()
+		_logfile.close()
 	
 	#non-API methods
 	
