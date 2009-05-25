@@ -27,6 +27,7 @@ class Main(mandy.Command):
 		self.opt('config', str, default=None, desc='nosetests config file')
 		self.opt('curses', bool, default=False, desc='use the curses interface')
 		self.opt('osx', bool, default=False, desc='use the cocoa interface')
+		self.opt('wx', bool, default=False, desc='use the wxpython interface')
 	
 	def run(self, opts):
 		self.opts = opts
@@ -82,6 +83,9 @@ class Main(mandy.Command):
 		elif self.opts.osx:
 			from ui.cocoa import Cocoa
 			self.ui = Cocoa(self.nose_args)
+		elif self.opts.wx:
+			from ui.wxapp import WxApp
+			self.ui = WxApp(self.nose_args)
 		else:
 			from ui.basic import Basic
 			self.ui = Basic(self.nose_args)
