@@ -1,13 +1,13 @@
 import test_helper
 
 from mocktest import *
-from autotest import scanner
+from autonose import scanner
 
 class ScannerTest(TestCase):
 	def test_should_load_saved_dependency_information(self):
-			with_('.autonose-depends.pickle').\
 		picklefile = mock('pickle file')
 		mock_on(scanner).load.is_expected.\
+			with_('.autonose-depends.pickle').\
 			returning(picklefile.raw)
 		pickle = mock('unpickled info')
 		mock_on(scanner.pickle).load.is_expected.with_(picklefile).returning(pickle)
@@ -18,12 +18,12 @@ class ScannerTest(TestCase):
 	def test_should_print_a_useful_error_on_load_failure(self):
 		import sys
 		picklefile = mock('pickle file')
-		mock_on(scanner).load.is_expected.with('.autonose-depends.pickle').returning(picklefile.raw)
+		mock_on(scanner).load.is_expected.with_('.autonose-depends.pickle').returning(picklefile.raw)
 		
 		mock_on(scanner.pickle).load.\
-			is_expected.with('.autonose-depends.pickle').\
+			is_expected.with_('.autonose-depends.pickle').\
 			raising(StandardError('oh noes'))
-		mock_on(sys).stderr.expects('write').with('xxx')
+		mock_on(sys).stderr.expects('write').with_('xxx')
 		
 		self.assertRaises(scanner.load, SystemExit(1))
 	

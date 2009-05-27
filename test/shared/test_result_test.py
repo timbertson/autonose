@@ -37,7 +37,6 @@ class TestResultTest(TestCase):
 class TestResultSetTest(TestCase):
 	def result_mock(self, name=None, time=0, ok=False):
 		_mock = mock(name).with_children(time=time).unfrozen().with_methods(ok=ok)
-		print str(_mock.raw)
 		return _mock
 		
 	def test_should_not_be_ok_if_any_result_is_not(self):
