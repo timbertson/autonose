@@ -23,8 +23,9 @@ class Watcher(nose.plugins.Plugin):
 	enabled = False
 	env_opt = 'AUTO_NOSE'
 	
-	def __init__(self, state=None):
+	def __init__(self, state=None, output_stream=None):
 		self.state = state
+		self.redirect_output = output_stream
 		super(self.__class__, self).__init__()
 	
 	def _setup(self):
@@ -103,6 +104,10 @@ class Watcher(nose.plugins.Plugin):
 					(self._current_test, test))
 			self._addSkip(self._current_test)
 		debug('-'*80)
+	
+	def setOutputStream(self, stream):
+		debug("setting output stream to %r" % (self.redirect_output)
+		return self.redirect_output
 
 	def finalize(self, result=None):
 		debug(self.state)

@@ -64,7 +64,7 @@ class Main(mandy.Command):
 			logging.getLogger().addHandler(NullHandler())
 
 	def init_nose_args(self):
-		self.nose_args = ['nosetests','--autorun']
+		self.nose_args = ['nosetests']
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 
@@ -94,7 +94,9 @@ class Main(mandy.Command):
 		debug("running with %s affected files..." % (len(state.affected)))
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
-		nose.run(argv=self.nose_args)
+		watcher_plugin = watcher.Watcher(state, getattr(self.ui, 'output_stream', None))
+		watcher_plugin.enabled = True
+		nose.run(argv=self.nose_args, addplugins=[watcher_plugin])
 
 	def info(self):
 		state = scanner.scan()

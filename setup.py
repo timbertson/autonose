@@ -11,7 +11,7 @@ setup(
 	long_description="test tracker for nosetests",
 	packages = find_packages(exclude=['test', 'test.*']),
 	entry_points = {
-		'nose.plugins.0.10': ['autonose = autonose:Watcher'],
+		'nose.plugins.0.11': ['autonose = autonose:Watcher'],
 		'console_scripts':   ['autonose = autonose:main'],
 	},
 	classifiers=[
@@ -27,7 +27,7 @@ setup(
 	zip_safe=True,
 	install_requires=[
 		'setuptools',
-		'nose',
+		'nose>=0.11',
 		'mandy',
 		'snakefood',
 	],
