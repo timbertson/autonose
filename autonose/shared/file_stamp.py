@@ -31,7 +31,6 @@ class FileStamp(object):
 		return cmp(self.path, other.path)
 	
 	def _get_modtime(self):
-		print os
 		return os.stat(file_util.absolute(self.path)).st_mtime
 	
 	def stale(self):
