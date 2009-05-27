@@ -3,6 +3,8 @@ import subprocess
 import sys
 import termstyle
 
+from base import BaseUI
+
 def has_rednose():
 	try:
 		__import__('rednose')
@@ -10,7 +12,7 @@ def has_rednose():
 	except ImportError:
 		return False
 
-class Basic(object):
+class Basic(BaseUI):
 	def __init__(self, nose_args):
 		if has_rednose():
 			nose_args.append('--rednose')

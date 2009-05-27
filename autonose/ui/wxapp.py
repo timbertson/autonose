@@ -2,12 +2,15 @@ import os
 import threading
 import wx
 
+from StringIO import StringIO
 
+from base import BaseUI
 
-class WxApp(object):
+class WxApp(BaseUI):
 	def __init__(self, nose_args):
 		self.setup_args(nose_args)
 		threading.Thread(target=self._main).start()
+		self.output_stream = StringIO()
 	
 	def _main(self):
 		self.app = wx.PySimpleApp()

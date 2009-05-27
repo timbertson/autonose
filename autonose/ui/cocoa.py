@@ -2,8 +2,9 @@ import os
 import threading
 from Cocoa import *
 
+from base import BaseUI
 
-class Cocoa(object):
+class Cocoa(BaseUI):
 	def __init__(self, nose_args):
 		self.setup_args(nose_args)
 		print dir(Cocoa)

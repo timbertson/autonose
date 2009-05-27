@@ -7,6 +7,8 @@ import termstyle
 
 import sys
 
+from base import BaseUI
+
 _logfile = open('.curses-log','w')
 def log(s):
 	_logfile.write(s + '\n')
@@ -52,7 +54,7 @@ def _stop(window):
 	curses.echo()
 	curses.endwin()
 
-class OutputProxy(object):
+class OutputProxy(BaseUI):
 	def __init__(self, proxy):
 		self.proxy = proxy
 		self._line = ''
