@@ -47,6 +47,9 @@ class Watcher(nose.plugins.Plugin):
 
 	def configure(self, options, conf=None):
 		if options.autonose:
+			self.enable()
+	
+	def enable(self):
 			self.enabled = True
 			self._setup()
 
@@ -106,7 +109,7 @@ class Watcher(nose.plugins.Plugin):
 		debug('-'*80)
 	
 	def setOutputStream(self, stream):
-		debug("setting output stream to %r" % (self.redirect_output)
+		debug("setting output stream to %r" % (self.redirect_output))
 		return self.redirect_output
 
 	def finalize(self, result=None):

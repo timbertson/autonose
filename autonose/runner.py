@@ -95,7 +95,7 @@ class Main(mandy.Command):
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state, getattr(self.ui, 'output_stream', None))
-		watcher_plugin.enabled = True
+		watcher_plugin.enable()
 		nose.run(argv=self.nose_args, addplugins=[watcher_plugin])
 
 	def info(self):
