@@ -3,12 +3,12 @@ import test_helper
 from mocktest import *
 from autotest import scanner
 
-#TODO: fill in all these tests!
-
 class ScannerTest(TestCase):
 	def test_should_load_saved_dependency_information(self):
+			with_('.autonose-depends.pickle').\
 		picklefile = mock('pickle file')
-		mock_on(scanner).load.is_expected.with('.autonose-depends.pickle').returning(picklefile.raw)
+		mock_on(scanner).load.is_expected.\
+			returning(picklefile.raw)
 		pickle = mock('unpickled info')
 		mock_on(scanner.pickle).load.is_expected.with_(picklefile).returning(pickle)
 		
@@ -26,11 +26,19 @@ class ScannerTest(TestCase):
 		mock_on(sys).stderr.expects('write').with('xxx')
 		
 		self.assertRaises(scanner.load, SystemExit(1))
-		#TODO
 	
 	def test_should_save_dependency_information(self):
-		pass
+		picklefile = mock('pickle file')
+		state = mock('state')
+		mock_on(scanner).open.is_expected.with_('.autonose-depends.pickle').\
+			returning(picklefile)
+		mock_on(scanner.pickle).dump.\
+			is_expected.with_(picklefile, state)
+		picklefile.expects('close')
+		
+		scanner.save(state)
 
 	def test_should_scan_filesystem_for_updates(self):
+		#TODO
 		pass
 
