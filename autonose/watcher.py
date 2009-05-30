@@ -25,7 +25,7 @@ class Watcher(nose.plugins.Plugin):
 	
 	def __init__(self, state=None, output_stream=None):
 		self.state = state
-		self.redirect_output = output_stream
+		self.output_stream = output_stream
 		super(self.__class__, self).__init__()
 	
 	def _setup(self):
@@ -50,8 +50,8 @@ class Watcher(nose.plugins.Plugin):
 			self.enable()
 	
 	def enable(self):
-			self.enabled = True
-			self._setup()
+		self.enabled = True
+		self._setup()
 
 	def wantFile(self, filename):
 		try:
@@ -109,8 +109,8 @@ class Watcher(nose.plugins.Plugin):
 		debug('-'*80)
 	
 	def setOutputStream(self, stream):
-		debug("setting output stream to %r" % (self.redirect_output))
-		return self.redirect_output
+		print >> sys.stderr, "setting output stream to %r" % (self.output_stream)
+		return self.output_stream
 
 	def finalize(self, result=None):
 		debug(self.state)

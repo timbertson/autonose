@@ -12,6 +12,7 @@ import watcher
 
 log = logging.getLogger(__name__)
 debug = log.debug
+info = log.info
 
 class NullHandler(logging.Handler):
 	def emit(self, record):
@@ -52,12 +53,12 @@ class Main(mandy.Command):
 				time.sleep(self.opts.wait)
 		finally:
 			if self.ui is not None:
+				info("finalizing UI")
 				self.ui.finalize()
 	
 	def init_logging(self):
 		if self.opts.debug:
 			logging.basicConfig(level=logging.DEBUG)
-			self.info()
 		elif self.opts.info:
 			logging.basicConfig(level=logging.INFO)
 		else:
@@ -84,14 +85,14 @@ class Main(mandy.Command):
 			from ui.cocoa import Cocoa
 			self.ui = Cocoa(self.nose_args)
 		elif self.opts.wx:
-			from ui.wxapp import WxApp
-			self.ui = WxApp(self.nose_args)
+			from ui.wxapp import WxAppSpawner
+			self.ui = WxAppSpawner(self.nose_args)
 		else:
 			from ui.basic import Basic
 			self.ui = Basic(self.nose_args)
 	
 	def run_with_state(self, state):
-		debug("running with %s affected files..." % (len(state.affected)))
+		info("running with %s affected files..." % (len(state.affected)))
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state, getattr(self.ui, 'output_stream', None))
@@ -99,7 +100,6 @@ class Main(mandy.Command):
 		nose.run(argv=self.nose_args, addplugins=[watcher_plugin])
 
 	def info(self):
-		state = scanner.scan()
 		print '-'*80
 		attrs = ['changed','added','removed','affected']
 		for key in attrs:
@@ -108,7 +108,6 @@ class Main(mandy.Command):
 			for item in items:
 				print repr(item)
 			print '='*20
-
 
 def main(argv=None):
 	try:
