@@ -51,21 +51,26 @@ class Main(mandy.Command):
 					break
 				debug("sleeping (%s)..." % (self.opts.wait,))
 				time.sleep(self.opts.wait)
+		except Exception, e:
+			log.error(e.message)
+			import traceback
+			traceback.print_exc()
+			raise
 		finally:
 			if self.ui is not None:
 				info("finalizing UI")
 				self.ui.finalize()
 	
 	def init_logging(self):
-		if self.opts.debug:
-			logging.basicConfig(level=logging.DEBUG)
-		elif self.opts.info:
-			logging.basicConfig(level=logging.INFO)
+		if self.opts.debug or self.opts.info:
+			lvl = logging.DEBUG if self.opts.debug else logging.INFO
+			format = '[%(levelname)s] %(name)s: %(message)s'
+			logging.basicConfig(level=lvl, format=format)
 		else:
 			logging.getLogger().addHandler(NullHandler())
 
 	def init_nose_args(self):
-		self.nose_args = ['nosetests']
+		self.nose_args = ['nosetests','--nologcapture', '--exe']
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 
@@ -85,8 +90,8 @@ class Main(mandy.Command):
 			from ui.cocoa import Cocoa
 			self.ui = Cocoa(self.nose_args)
 		elif self.opts.wx:
-			from ui.wxapp import WxAppSpawner
-			self.ui = WxAppSpawner(self.nose_args)
+			from ui.wxapp import AppLauncher
+			self.ui = AppLauncher(self.nose_args)
 		else:
 			from ui.basic import Basic
 			self.ui = Basic(self.nose_args)
@@ -95,7 +100,7 @@ class Main(mandy.Command):
 		info("running with %s affected files..." % (len(state.affected)))
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
-		watcher_plugin = watcher.Watcher(state, getattr(self.ui, 'output_stream', None))
+		watcher_plugin = watcher.Watcher(state)
 		watcher_plugin.enable()
 		nose.run(argv=self.nose_args, addplugins=[watcher_plugin])
 
