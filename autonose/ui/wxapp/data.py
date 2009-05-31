@@ -5,30 +5,26 @@ import pickle
 import base64
 
 class Node(object):
-	def __init__(self, parent, attrs={}):
+	def __init__(self, parent, name, attrs={}):
 		self.parent = parent
+		self.name = name
 		self.attrs = attrs
-		self._children = collections.defaultdict(list)
+		self.children = []
 		self.content = ''
 
 	def push(self, name, attrs):
-		node = type(self)(self, attrs)
-		self._children[name].append(node)
+		node = type(self)(self, name, attrs)
+		self.children.append(node)
 		return node
 	
 	def add_content(self, content):
 		self.content += content
 	
-	def children():
-		self._children.items()
-	
 	def __getitem__(self, name):
 		return self.attrs[name]
 	
 	def __repr__(self):
-		def child_repr(children):
-			return ', '.join(["%s: %s" % (name, repr(ch)) for name, ch in children.items()])
-		return '<Node: (%r) children=(%s)>\n' % (self.attrs, child_repr(self._children))
+		return '<%s: (%r) children=(%r)>\n' % (self.name, self.attrs, self.children)
 
 class Data(object):
 	"""
@@ -51,7 +47,7 @@ class Data(object):
 	def __init__(self, stream):
 		self.stream = self.realStream or stream
 		self.depth = 0
-		self.root = Node(None)
+		self.root = Node(None, 'root')
 		self.current = self.root
 	
 	def startDocument(self):
@@ -64,9 +60,10 @@ class Data(object):
 		self.current = self.current.push(name, attrs)
 
 	def endElement(self, name=None):
-		self.current = self.current.parent
-		if self.current is self.root:
+		parent = self.current.parent
+		if parent is self.root:
 			self.stream.write(self.encode(self.current))
+		self.current = parent
 
 	def characters(self,content):
 		if content:

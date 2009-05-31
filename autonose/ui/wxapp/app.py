@@ -39,9 +39,6 @@ class App():
 	
 	def process_line(self, line):
 		node = Data.decode(line)
-		self.process_node(node)
-	
-	def process_node(self, node):
 		self.page.process_node(node)
 		self.do(lambda: self.page.update_window(self.window))
 	
