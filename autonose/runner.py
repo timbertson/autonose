@@ -104,16 +104,6 @@ class Main(mandy.Command):
 		watcher_plugin.enable()
 		nose.run(argv=self.nose_args, addplugins=[watcher_plugin])
 
-	def info(self):
-		print '-'*80
-		attrs = ['changed','added','removed','affected']
-		for key in attrs:
-			print key
-			items = getattr(state, key)
-			for item in items:
-				print repr(item)
-			print '='*20
-
 def main(argv=None):
 	try:
 		Main()

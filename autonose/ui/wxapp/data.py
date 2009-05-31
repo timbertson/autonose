@@ -20,7 +20,15 @@ class Node(object):
 		self.content += content
 	
 	def children():
-		pass
+		self._children.items()
+	
+	def __getitem__(self, name):
+		return self.attrs[name]
+	
+	def __repr__(self):
+		def child_repr(children):
+			return ', '.join(["%s: %s" % (name, repr(ch)) for name, ch in children.items()])
+		return '<Node: (%r) children=(%s)>\n' % (self.attrs, child_repr(self._children))
 
 class Data(object):
 	"""

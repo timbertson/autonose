@@ -13,7 +13,7 @@ debug = log.debug
 info = log.info
 
 from shared.test_result import TestResult, TestResultSet, success, skip, error, fail
-def get_paths(*items): return '\n'.join([x.path for x in items])
+def get_paths(*items): return '\n + '.join([x.path for x in items])
 
 global_state = None
 
@@ -35,8 +35,10 @@ class Watcher(nose.plugins.Plugin):
 				self.state = scanner.scan()
 		self.start_time = time.time()
 		self.files_to_run = set(self.state.affected).union(set(self.state.bad))
-		info("changed files: %s" % (get_paths(*self.state.affected),))
-		info("bad files: %s" % (get_paths(*self.state.bad),))
+		if len(self.state.affected):
+			info("changed files: %s" % (get_paths(*self.state.affected),))
+		if len(self.state.bad):
+			info("bad files: %s" % (get_paths(*self.state.bad),))
 
 	def options(self, parser, env=os.environ):
 		parser.add_option(

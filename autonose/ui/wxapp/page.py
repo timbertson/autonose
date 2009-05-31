@@ -6,7 +6,7 @@ class Page(object):
 		self.updates = []
 	
 	def process_node(self, node):
-		html = "<li>%s</li>\n" % (cgi.escape(repr(node)),)
+		html = "<li>%s</li>\n" % (cgi.escape(repr(node)).replace("\n","<br />"),)
 		self.content += html
 	
 	def update_window(self, window):
