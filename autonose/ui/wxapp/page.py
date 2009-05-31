@@ -4,37 +4,62 @@ import os
 
 h = cgi.escape
 
+
 class Page(object):
 	def __init__(self):
 		self.content = HtmlPage()
 		self.content.head = '<h1>loading!</h1>'
 		self.updates = []
 	
+	def _process(self, prefix, node, callback = None):
+		try:
+			processor = getattr(self, prefix + str(node.name))
+		except AttributeError, e:
+			print "Error processing results: %s" % (e.message,)
+			return None
+		result = processor(node.attrs, node.children)
+		if callback is not None:
+			callback(result)
+		return result
+		
 	def process_node(self, node):
-		action = getattr(self, "_process_%s" % (node.name), None)
-		if action is None:
-			print "Can't process event: %s" % (node.name,)
-			return
-		action(node.attrs, node.children)
+		self._process('_process_', node)
 	
 	def update_window(self, window):
 		window.SetPage(str(self.content))
 	
 	def _process_new_run(self, attrs, children):
-		print "new run!"
+		assert len(children) == 0, "unexpected children"
 		self.content.clear()
 		self.content.head = 'last run: %s' % (time.strftime("%H:%m:%S"),)
 	
 	def _process_results(self, attrs, children):
 		html = 'ran %s tests (%s failures, %s errors)' % (attrs['ran'], attrs['failures'], attrs['errors'])
+		assert len(children) == 0, "unexpected children"
 		self.content.foot = html
 	
 	def _process_reports(self, attrs, children):
-		"""process reports of failed tests"""
-		self.content.body += "<li>%s</li>" % (h(repr(children)),)
+		pass
 	
 	def _process_test(self, attrs, children):
 		self.content.tests += "%s<br />" % (h(repr(attrs)),)
+		output = []
+		for child in children:
+			self._process('_format_', child, lambda s: output.append(s))
+		self.content.tests += '<br />\n'.join(output)
+	
+	def _format_traceback(self, attrs, children):
+		output = []
+		for child in children:
+			self._process('_format_', child, lambda s: output.append(s))
+		return ''.join(output)
+	
+	def _format_frame(self, attrs, children):
+		return "FRAME: " + repr(attrs)
+	
+	def _format_cause(self, attrs, children):
+		return "CAUSE: " + repr(attrs)
+
 
 class HtmlPage(object):
 	def __init__(self):

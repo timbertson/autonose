@@ -1,0 +1,15 @@
+#head {
+	position:fixed;
+	top:0;
+	width:100%;
+	background:#eee;
+}
+
+#content {
+	color:blue;
+}
+
+#summary {
+	color:white;
+	background:#333;
+}
