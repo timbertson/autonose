@@ -12,7 +12,8 @@ class App():
 		self.window = None
 		self.work = []
 		self.lock = threading.Lock()
-
+		self._html = '<h1>Hi!</h1>'
+		
 		self.ui = threading.Thread(target=self._main)
 		self.ui.start()
 		def _done():
@@ -24,15 +25,15 @@ class App():
 		try:
 			while not sys.stdin.closed:
 				line = sys.stdin.readline()
-				line = line[:] # make a copy
 				print "LINE:: %r @ %s" % (line, id(line))
-				self.do(lambda: self.writeHTML(line))
+				self.do(lambda line=line: self.writeHTML(line))
 				if not line:
 					print "EOF!"
 					break
 		except KeyboardInterrupt:
 			pass
-		self.do(self.end)
+		finally:
+			self.do(self.end)
 	
 	def end(self):
 		del self.frame
@@ -54,7 +55,8 @@ class App():
 	
 	def writeHTML(self, h):
 		print "setting HTML to %r @ %s" % (h,id(h))
-		self.window.SetPage(h)
+		self._html += cgi.escape(h)
+		self.window.SetPage(self._html)
 	
 	def _main(self):
 		self.app = wx.PySimpleApp()

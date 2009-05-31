@@ -42,8 +42,7 @@ class XmlFormatter(object):
 		if len( content.strip() ) == 0:
 			return
 		self._writeElement()
-		cnt = cgi.escape(content)
-		cnt = content.replace( '&', '&amp;' ).replace( '<', '&lt;' ).replace( '>', '&gt;' ).rstrip()
+		cnt = cgi.escape(content).rstrip()
 		if not cnt.endswith('\n'):
 			cnt += '\n'
 		self.stream.write( cnt )
