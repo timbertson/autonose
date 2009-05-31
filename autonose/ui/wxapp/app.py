@@ -7,6 +7,8 @@ import wx
 import wx.html as html
 import cgi
 
+from data import Data
+
 class App():
 	def __init__(self):
 		self.window = None
@@ -25,15 +27,22 @@ class App():
 		try:
 			while not sys.stdin.closed:
 				line = sys.stdin.readline()
-				print "LINE:: %r @ %s" % (line, id(line))
-				self.do(lambda line=line: self.writeHTML(line))
+				self.process_line(line)
 				if not line:
-					print "EOF!"
+					print "UI received EOF"
 					break
 		except KeyboardInterrupt:
 			pass
 		finally:
 			self.do(self.end)
+	
+	def process_line(self, line):
+		node = Data.decode(line)
+		self.process_node(node)
+	
+	def process_node(self, node):
+		html = "<li>%s</li>\n" % (cgi.escape(repr(node)),)
+		self.do(lambda: self.writeHTML(html))
 	
 	def end(self):
 		del self.frame
@@ -48,22 +57,21 @@ class App():
 		self.lock.acquire()
 		if self.work:
 			for work_item in self.work:
-				print ">> performing: %r" % (work_item,)
 				work_item()
 			self.work = []
 		self.lock.release()
 	
 	def writeHTML(self, h):
 		print "setting HTML to %r @ %s" % (h,id(h))
-		self._html += cgi.escape(h)
+		self._html += h
 		self.window.SetPage(self._html)
 	
 	def _main(self):
 		self.app = wx.PySimpleApp()
-		self.frame = wx.Frame(None, wx.ID_ANY, "Hello World")
+		self.frame = wx.Frame(None, wx.ID_ANY, "Autonose Report")
 		self.frame.Bind(wx.EVT_IDLE, self.onIdle)
 		self.window = html.HtmlWindow(parent=self.frame)
-		self.window.SetPage("<html><h1>hi!</h1></html")
+		self.window.SetPage("<html><h1>Loading...</h1></html")
 		self.frame.Show(True)
 		self.app.MainLoop()
 		print "main loop exited"

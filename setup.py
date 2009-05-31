@@ -28,6 +28,7 @@ setup(
 	install_requires=[
 		'setuptools',
 		'nose>=0.11',
+		'nosexml',
 		'mandy',
 		'snakefood',
 	],
