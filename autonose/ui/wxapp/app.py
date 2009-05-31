@@ -8,13 +8,14 @@ import wx.html as html
 import cgi
 
 from data import Data
+from page import Page
 
 class App():
 	def __init__(self):
 		self.window = None
 		self.work = []
 		self.lock = threading.Lock()
-		self._html = '<h1>Hi!</h1>'
+		self.page = Page()
 		
 		self.ui = threading.Thread(target=self._main)
 		self.ui.start()
@@ -41,8 +42,8 @@ class App():
 		self.process_node(node)
 	
 	def process_node(self, node):
-		html = "<li>%s</li>\n" % (cgi.escape(repr(node)),)
-		self.do(lambda: self.writeHTML(html))
+		self.page.process_node(node)
+		self.do(lambda: self.page.update_window(self.window))
 	
 	def end(self):
 		del self.frame
@@ -61,17 +62,12 @@ class App():
 			self.work = []
 		self.lock.release()
 	
-	def writeHTML(self, h):
-		print "setting HTML to %r @ %s" % (h,id(h))
-		self._html += h
-		self.window.SetPage(self._html)
-	
 	def _main(self):
 		self.app = wx.PySimpleApp()
 		self.frame = wx.Frame(None, wx.ID_ANY, "Autonose Report")
 		self.frame.Bind(wx.EVT_IDLE, self.onIdle)
 		self.window = html.HtmlWindow(parent=self.frame)
-		self.window.SetPage("<html><h1>Loading...</h1></html")
+		self.page.update_window(self.window)
 		self.frame.Show(True)
 		self.app.MainLoop()
 		print "main loop exited"
