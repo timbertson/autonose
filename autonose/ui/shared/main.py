@@ -5,11 +5,14 @@ from data import Data
 from page import Page
 
 class Main(object):
-	def __init__(self, delegate):
+	def __init__(self, delegate, lock=None):
 		self.delegate = delegate
 		self.work = []
 		self.page = Page()
-		self.lock = threading.Lock()
+
+		self.lock = lock
+		if lock is None:
+			self.lock = threading.Lock()
 
 	def run(self):
 		import os
