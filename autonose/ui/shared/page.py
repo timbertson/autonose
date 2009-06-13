@@ -25,9 +25,6 @@ class Page(object):
 	def process_node(self, node):
 		self._process('_process_', node)
 	
-	def update_window(self, window):
-		window.SetPage(str(self.content))
-	
 	def _process_new_run(self, attrs, children):
 		assert len(children) == 0, "unexpected children"
 		self.content.clear()
@@ -54,11 +51,17 @@ class Page(object):
 			self._process('_format_', child, lambda s: output.append(s))
 		return ''.join(output)
 	
+	def _format_stderr(self, attrs, children):
+		return "STDERR: " + repr(attrs)
+	
 	def _format_frame(self, attrs, children):
 		return "FRAME: " + repr(attrs)
 	
 	def _format_cause(self, attrs, children):
 		return "CAUSE: " + repr(attrs)
+	
+	def __str__(self):
+		return str(self.content)
 
 
 class HtmlPage(object):

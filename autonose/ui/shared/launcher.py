@@ -8,14 +8,14 @@ import logging
 log = logging.getLogger(__name__)
 info = log.info
 
-class AppLauncher(object):
-	def __init__(self, nose_args = None):
-		self.proc, self.output_stream = self.fork()
+class Launcher(object):
+	def __init__(self, nose_args = None, app_file = __file__):
+		self.proc, self.output_stream = self.fork(app_file)
 		Data.realStream = self.output_stream
 		self.setup_args(nose_args)
 	
-	def fork(self):
-		proc = subprocess.Popen(['python', __file__], stdin=subprocess.PIPE)
+	def fork(self, app_file):
+		proc = subprocess.Popen(['python', app_file], stdin=subprocess.PIPE)
 		return proc, proc.stdin
 	
 	def setup_args(self, nose_args):
@@ -40,8 +40,4 @@ class AppLauncher(object):
 
 	def begin_new_run(self, current_time):
 		Data.writeNodeNamed('new_run')
-
-if __name__ == '__main__':
-	import app
-	app.App()
 

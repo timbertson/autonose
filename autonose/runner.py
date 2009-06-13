@@ -87,11 +87,13 @@ class Main(mandy.Command):
 			from ui.terminal import Terminal
 			self.ui = Terminal(self.nose_args)
 		elif self.opts.osx:
-			from ui.cocoa import Cocoa
-			self.ui = Cocoa(self.nose_args)
+			from ui.cocoa import App
+			from ui.shared import Launcher
+			self.ui = Launcher(self.nose_args, App.script)
 		elif self.opts.wx:
-			from ui.wxapp import AppLauncher
-			self.ui = AppLauncher(self.nose_args)
+			from ui.shared import Launcher
+			from ui.wxapp import App
+			self.ui = Launcher(self.nose_args, App.script)
 		else:
 			from ui.basic import Basic
 			self.ui = Basic(self.nose_args)

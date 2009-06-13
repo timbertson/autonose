@@ -1,30 +1,48 @@
+#!/usr/bin/env python
+
+import sys
+
 import os
 import threading
 from Cocoa import *
+import cgi
 
-from base import BaseUI
+from data import Data
+from page import Page
 
-class Cocoa(BaseUI):
-	def __init__(self, nose_args):
-		self.setup_args(nose_args)
-		print dir(Cocoa)
+
+class App():
+	script = __file__
+	def __init__(self):
+		self.window = None
 		self.app = NSApplication.sharedApplication()
-		threading.Thread(target=self._main).start()
+		self.mainloop = Main(update=self.update_window, exit=self.exit)
+		self.ui = threading.Thread(target=self._main)
+		self.ui.start()
+		def _done():
+			print "UI fully loaded"
+		self.mainloop.do(_done)
+		self.mainloop.run()
+	
+	def exit(self):
+		pass
+		
+	def update_window(self, page=None):
+		if page is None:
+			page = self.mainloop.page
+		pass
+		self.window.setPage(page.content)
 	
 	def _main(self):
-		# NSBundle.loadNibNamed_owner_("main", NSApp)
-		self.app.run()
+		# self.app = wx.PySimpleApp()
+		# self.frame = wx.Frame(None, wx.ID_ANY, "Autonose Report")
+		# self.frame.Bind(wx.EVT_IDLE, self.mainloop.on_idle)
+		# self.window = html.HtmlWindow(parent=self.frame)
+		# self.update_window()
+		# self.frame.Show(True)
+		# self.app.MainLoop()
+		print "main loop exited"
+
+if __name__ == '__main__':
+	App()
 	
-	def setup_args(self, nose_args):
-		nose_args += ['--xml', '--xml-formatter=nosexml.PrettyPrintFormatter']
-		try:
-			del os.environ['NOSE_REDNOSE']
-		except KeyError: pass
-
-	def finalize(self):
-		pass
-
-	def begin_new_run(self, current_time):
-		pass
-
-
