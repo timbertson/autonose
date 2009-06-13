@@ -14,6 +14,7 @@ class App():
 	def __init__(self):
 		self.window = None
 		self.mainloop = Main(delegate=self)
+		self.lock = threading.Lock()
 		self.ui = threading.Thread(target=self._main)
 		self.ui.start()
 		def _done():
@@ -22,23 +23,41 @@ class App():
 		self.mainloop.run()
 	
 	def exit(self):
-		del self.frame
-		self.app.Exit()
+		def _exit():
+			del self.frame
+			self.app.Exit()
+		self.do(_exit)
 		
 	def update(self, page=None):
-		if page is None:
-			page = self.mainloop.page
-		self.window.SetPage(str(page))
+		def _update():
+			if page is None:
+				page = self.mainloop.page
+			self.window.SetPage(str(page))
+		self.do(_update)
 	
 	def _main(self):
 		self.app = wx.PySimpleApp()
 		self.frame = wx.Frame(None, wx.ID_ANY, "Autonose Report")
-		self.frame.Bind(wx.EVT_IDLE, self.mainloop.on_idle)
+		self.frame.Bind(wx.EVT_IDLE, self.on_idle)
 		self.window = html.HtmlWindow(parent=self.frame)
 		self.update()
 		self.frame.Show(True)
 		self.app.MainLoop()
 		print "main loop exited"
+	
+	def do(self):
+		self.lock.acquire()
+		self.work.append(func)
+		self.lock.release()
+
+	def on_idle(self, *args):
+		self.lock.acquire()
+		if self.work:
+			for work_item in self.work:
+				work_item()
+			self.work = []
+		self.lock.release()
+
 
 if __name__ == '__main__':
 	App()
