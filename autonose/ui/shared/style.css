@@ -1,20 +1,149 @@
-#head {
-	position:fixed;
-	top:0;
-	width:100%;
-	background:#eee;
-}
-
-#content {
-	color:blue;
-}
-
-#summary {
-	color:white;
-	background:#333;
+/* -- generic styles --- */
+html {
+	font-family: sans-serif;
+	background:#f6f6f6;
+	font-size:0.9em;
 }
 
 body {
 	margin:0;
+	padding:1em 0 2em 0;
+}
+
+h1, h2, h3 {
+	font-size:12pt;
 	padding:0;
+	margin:0;
+	color:0;
+}
+
+
+.flush {
+	padding-left:10px;
+	padding-right:10px;
+}
+
+ul {
+	margin:0;
+	padding:0;
+}
+
+li {
+	padding: 0 2em;
+}
+
+pre, code {
+	margin:0;
+	font-size: 1.2em;
+}
+
+
+
+/* ----- header (time of run) ------ */
+#head {
+	position:fixed;
+	top:0;
+	width:100%;
+	color:#ccc;
+	background:#777;
+	border-bottom: 1px solid #444;
+	text-align:center;
+}
+
+
+
+
+/* --- SUMMARY (tests run, failed, etc) --- */
+
+#summary {
+	font-size:1.2em;
+	color:#999;
+	background:#333;
+	position:fixed;
+	display:block;
+	bottom:0;
+	left:0;
+	padding-top: 5px;
+	padding-bottom: 3px;
+	width:100%;
+}
+
+/*#summary span { font-weight: bold; }*/
+#summary .tests { color: #9e9; }
+#summary .failures { color: #e55; }
+#summary .errors { color: #eb5; }
+
+
+
+
+/* --- TESTS --- */
+
+#tests {
+	border-top: 1px solid #eee;
+}
+
+.test {
+	border-top:1px solid #ddd;
+	padding-bottom:3em;
+}
+
+.test h2 {
+	padding:8px 0 4px 0;
+	border-bottom: 1px solid #ddd;
+	padding-left:1em;
+}
+
+.test.success h2{ color:#383; background:#efe; border-bottom: 1px solid #ddd;}
+.test.failure h2{ color:#833; background:#fee; }
+.test.error   h2{ color:#a73; background:#fffbe0; }
+
+.test .traceback .cause {
+	color:#944;
+	font-size:1.1em;
+	margin:1em 0;
+}
+
+.traceback .frame {
+	color: #999;
+}
+
+.frame .lineno { font-weight:bold; }
+.frame .function { font-weight:bold; color:black; }
+
+.traceback .code pre{
+	color:#45b;
+	margin-left: 2em;
+}
+
+.test ul.traceback {
+	margin-top:0.5em;
+}
+
+a {
+	color:#666;
+	text-decoration:none;
+	font-weight:bold;
+}
+a:hover { color:black; }
+
+.test .traceback li {
+	margin-top:0.6em;
+	list-style-type: none;
+/*	border-bottom: 1px solid #f7f7f7;*/
+}
+.test .traceback .cause .type { font-weight:bold; }
+
+
+/* -- captured output --- */
+.test .capture {
+	background:white;
+	padding-left: 6em;
+	color:#222;
+	margin-top:1.5em;
+	padding-bottom:1em;
+	padding-top:0.5em;
+}
+
+.test .capture h3 {
+	margin-bottom:0.4em;
 }

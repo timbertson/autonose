@@ -15,11 +15,12 @@ class App():
 		self.window = None
 		self.mainloop = Main(delegate=self)
 		self.lock = threading.Lock()
+		self.work = []
 		self.ui = threading.Thread(target=self._main)
 		self.ui.start()
 		def _done():
 			print "UI fully loaded"
-		self.mainloop.do(_done)
+		self.do(_done)
 		self.mainloop.run()
 	
 	def exit(self):
@@ -29,11 +30,11 @@ class App():
 		self.do(_exit)
 		
 	def update(self, page=None):
-		def _update():
+		def _update(page):
 			if page is None:
 				page = self.mainloop.page
 			self.window.SetPage(str(page))
-		self.do(_update)
+		self.do(lambda: _update(page))
 	
 	def _main(self):
 		self.app = wx.PySimpleApp()
@@ -45,7 +46,7 @@ class App():
 		self.app.MainLoop()
 		print "main loop exited"
 	
-	def do(self):
+	def do(self, func):
 		self.lock.acquire()
 		self.work.append(func)
 		self.lock.release()

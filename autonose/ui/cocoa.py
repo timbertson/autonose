@@ -18,10 +18,9 @@ class AutonoseApp(NSObject):
 		return self
 		
 	def run(self):
-		pool = NSAutoreleasePool.alloc().init()
 		self.app = NSApplication.sharedApplication()
 		origin = [100,200]
-		size = [400,600]
+		size = [800,600]
 		self.view = WebView.alloc().initWithFrame_frameName_groupName_(NSMakeRect(0,0, *size), None, None)
 		self.view.setAutoresizingMask_(NSViewHeightSizable | NSViewWidthSizable)
 		
@@ -37,7 +36,6 @@ class AutonoseApp(NSObject):
 		try:
 			self.app.run()
 		except KeyboardInterrupt:
-			pool.release()
 			self.doExit()
 
 	def doExit(self, *args):
@@ -71,11 +69,13 @@ class App(object):
 		self.app.performSelectorOnMainThread_withObject_waitUntilDone_(sel, arg, True)
 	
 	def update(self, page=None):
+		f = open('/tmp/html.html', 'w')
+		f.write(str(page))
+		f.close()
+		
 		self.do(self.app.doUpdate, page)
 
 
 if __name__ == '__main__':
-	pool = NSAutoreleasePool.alloc().init()
 	App()
-	pool.release()
 	

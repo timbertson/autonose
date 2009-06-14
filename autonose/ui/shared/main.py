@@ -21,6 +21,9 @@ class Main(object):
 					break
 		except KeyboardInterrupt:
 			pass
+		except StandardError:
+			import traceback
+			traceback.print_exc()
 		finally:
 			self.delegate.exit()
 	
