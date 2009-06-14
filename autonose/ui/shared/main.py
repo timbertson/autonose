@@ -15,7 +15,6 @@ class Main(object):
 			
 			while not sys.stdin.closed:
 				line = sys.stdin.readline()
-				print line
 				self.process_line(line)
 				if not line:
 					print "UI received EOF"

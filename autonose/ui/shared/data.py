@@ -21,7 +21,10 @@ class Node(object):
 		self.content += content
 	
 	def __getitem__(self, name):
-		return self.attrs[name]
+		try:
+			return self.attrs[name]
+		except KeyError:
+			print "WARNING: node has no key %r. Discarding" % (name,)
 	
 	def __repr__(self):
 		return '<%s: (%r) children=(%r)>\n' % (self.name, self.attrs, self.children)

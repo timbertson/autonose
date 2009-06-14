@@ -18,6 +18,7 @@ class AutonoseApp(NSObject):
 		return self
 		
 	def run(self):
+		pool = NSAutoreleasePool.alloc().init()
 		self.app = NSApplication.sharedApplication()
 		origin = [100,200]
 		size = [400,600]
@@ -33,14 +34,16 @@ class AutonoseApp(NSObject):
 		
 		window.contentView().addSubview_(self.view)
 		window.makeKeyAndOrderFront_(None)
-    
-		self.app.run()
+		try:
+			self.app.run()
+		except KeyboardInterrupt:
+			pool.release()
+			self.doExit()
 
 	def doExit(self, *args):
 		self.app.terminate_(self)
 
 	def doUpdate(self, page=None):
-		self.releasePool.drain()
 		if page is None:
 			page = self.mainLoop.page
 		self.htmlView.loadHTMLString_baseURL_(str(page), NSURL.fileURLWithPath_(os.path.dirname(__file__)))
@@ -50,7 +53,6 @@ class AutonoseApp(NSObject):
 		self.releasePool = NSAutoreleasePool.alloc().init()
 		self.mainLoop.run()
 		self.releasePool.release()
-	
 
 class App(object):
 	script = __file__
@@ -73,5 +75,7 @@ class App(object):
 
 
 if __name__ == '__main__':
+	pool = NSAutoreleasePool.alloc().init()
 	App()
+	pool.release()
 	
