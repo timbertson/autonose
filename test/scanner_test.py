@@ -18,14 +18,12 @@ class ScannerTest(TestCase):
 	def test_should_print_a_useful_error_on_load_failure(self):
 		import sys
 		picklefile = mock('pickle file')
-		mock_on(scanner).load.is_expected.with_('.autonose-depends.pickle').returning(picklefile.raw)
-		
 		mock_on(scanner.pickle).load.\
-			is_expected.with_('.autonose-depends.pickle').\
+			is_expected.\
 			raising(StandardError('oh noes'))
-		mock_on(sys).stderr.expects('write').with_('xxx')
+		mock_on(sys).stderr.expects('write').with_(string_matching("Failed loading \"\.autonose-depends\.pickle\"\. you may have to delete it\..*"))
 		
-		self.assertRaises(scanner.load, SystemExit(1))
+		self.assertRaises(SystemExit, scanner.load, args=(1,))
 	
 	def test_should_save_dependency_information(self):
 		picklefile = mock('pickle file')

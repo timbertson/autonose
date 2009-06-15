@@ -91,7 +91,7 @@ class Page(object):
 	def _format_stderr(self, content):
 		return self._format__stream('stderr', content)
 	
-	def _format_stdout(self, attrs, children):
+	def _format_stdout(self, content):
 		return self._format__stream('stdout', content)
 	
 	def _format_frame(self, attrs):
@@ -105,7 +105,7 @@ class Page(object):
 	def _format_cause(self, attrs, content=''):
 		return """
 			<li class="cause">
-				<span class="type">%s</span>: <code class="message">%s</code>
+				<span class="type">%s</span>: <pre class="message">%s</pre>
 			</li>
 		""" % (attrs['type'], content)
 	

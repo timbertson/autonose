@@ -24,7 +24,7 @@ class Main(mandy.Command):
 		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit')
 		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
 		self.opt('info', bool, default=False, opposite=False, desc='show more info about what files have changed')
-		self.opt('wait', int, default=5, desc='sleep time (between filesystem scans)')
+		self.opt('wait', int, default=2, desc='sleep time (between filesystem scans)')
 		self.opt('config', str, default=None, desc='nosetests config file')
 		self.opt('curses', bool, default=False, desc='use the curses interface')
 		self.opt('osx', bool, default=False, desc='use the cocoa interface')
