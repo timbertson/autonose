@@ -24,7 +24,7 @@ class Node(object):
 		try:
 			return self.attrs[name]
 		except KeyError:
-			print "WARNING: node has no key %r. Discarding" % (name,)
+			print "WARNING: node has no key %r - discarding." % (name,)
 	
 	def __repr__(self):
 		return '<%s: (%r) children=(%r)>\n' % (self.name, self.attrs, self.children)
@@ -43,7 +43,7 @@ class Data(object):
 	def __new__(cls, *a, **kw):
 		if getattr(cls, 'singleton', None) is None:
 			cls.singleton = super(Data, cls).__new__(cls, *a, **kw)
-			cls.singleton.__init__(cls.singleton, *a, **kw)
+			cls.__init__(cls.singleton, *a, **kw)
 			cls.__init__ = lambda *a, **k: None
 		return cls.singleton
 
@@ -55,6 +55,8 @@ class Data(object):
 	
 	def startDocument(self):
 		assert self.current is self.root, "Elements written before document started"
+		self.startElement('new_run')
+		self.endElement()
 
 	def endDocument(self):
 		assert self.current is self.root, "Not all elements were closed."
@@ -78,14 +80,6 @@ class Data(object):
 		# ensure no whitespace in the content (base64 does this for readability)
 		encoded_single_line = ''.join(encoded.split())
 		return encoded_single_line + '\n'
-	
-	@classmethod
-	def writeNodeNamed(cls, name):
-		self = cls()
-		self.startDocument()
-		self.startElement(name)
-		self.endElement()
-		self.endDocument()
 	
 	@staticmethod
 	def decode(encoded):

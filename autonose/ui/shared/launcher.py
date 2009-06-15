@@ -8,6 +8,8 @@ import logging
 log = logging.getLogger(__name__)
 info = log.info
 
+#TODO: look into pyro: http://pyro.sourceforge.net/manual/8-example.html
+
 class Launcher(object):
 	def __init__(self, nose_args = None, app_file = __file__):
 		self.proc, self.output_stream = self.fork(app_file)
@@ -39,5 +41,5 @@ class Launcher(object):
 		# 	raise RuntimeError("return code (%s) from UI is nonzero..." % (retcode,))
 
 	def begin_new_run(self, current_time):
-		Data.writeNodeNamed('new_run')
+		pass
 
