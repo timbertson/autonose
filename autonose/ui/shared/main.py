@@ -10,7 +10,7 @@ class Main(object):
 		self.page = Page()
 
 	def run(self):
-		print "RUNING"
+		print "RUNNING"
 		try:
 			
 			while not sys.stdin.closed:

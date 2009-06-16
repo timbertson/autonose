@@ -7,7 +7,7 @@ html {
 
 body {
 	margin:0;
-	padding:1em 0 2em 0;
+	padding:2em 0 2em 0;
 }
 
 h1, h2, h3 {
@@ -17,10 +17,18 @@ h1, h2, h3 {
 	color:0;
 }
 
-
 .flush {
 	padding-left:10px;
 	padding-right:10px;
+}
+
+h1 {
+	margin: 5em;
+	text-align:center;
+	-webkit-border-radius: 1em;
+	border: 2px solid #ddd;
+	background:#fff;
+	padding:3em;
 }
 
 ul {
@@ -43,15 +51,24 @@ pre, code {
 #head {
 	position:fixed;
 	top:0;
-	width:100%;
-	color:#ccc;
-	background:#777;
-	border-bottom: 1px solid #444;
-	text-align:center;
+	right:0;
+	color:#888;
+	overflow: hidden;
+	z-index:50;
 }
 
 
-
+/* --- NOTICE -- */
+#notice {
+	position:fixed;
+	top:0;
+	left:0;
+	z-index:100;
+	overflow:hidden;
+	color:#ccc;
+	padding-left:0.5em;
+	white-space: nowrap;
+}
 
 /* --- SUMMARY (tests run, failed, etc) --- */
 
@@ -78,13 +95,17 @@ pre, code {
 
 /* --- TESTS --- */
 
-#tests {
-	border-top: 1px solid #eee;
-}
-
 .test {
 	border-top:1px solid #ddd;
 	padding-bottom:3em;
+}
+
+.test.old {
+	opacity:0.4;
+}
+
+.test.success {
+	padding-bottom:0.3em;
 }
 
 .test h2 {

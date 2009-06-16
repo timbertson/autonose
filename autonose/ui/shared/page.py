@@ -11,11 +11,132 @@ def shorten_file(file_path):
 		return abs_[len(here)+1:]
 	return abs_
 
+class Summary(object):
+	def __init__(self):
+		self.reset()
+	
+	def reset(self):
+		self.ran = self.failures = self.errors = 0
+	
+	def finish(self): pass
+
+	def __str__(self):
+		html = 'ran <span class="tests">%s tests</span>' % (self.ran,)
+		if self.failures or self.errors:
+			html += ' ('
+			if self.failures:
+				html += '<span class="failures">%s failures</span>' % (self.failures,)
+				if self.errors:
+					html += ", "
+			if self.errors:
+				html += '<span class="errors">%s errors</span>'  % (self.errors,)
+			html += ')'
+		return html
+
+class Status(object):
+	def __init__(self):
+		self.time = None
+	
+	def reset(self):
+		self.time = time.localtime()
+		self.finish_time = None
+	
+	def finish(self):
+		self.finish_time = time.localtime()
+
+	def __str__(self):
+		time_format = "%H:%m:%S"
+		if self.time is None:
+			return "loading..."
+		if self.finish_time:
+			return 'run finished: %s' % (time.strftime(time_format, self.finish_time),)
+		return 'run started: %s' % (time.strftime("%H:%m:%S", self.time),)
+
+class Tests(object):
+	def __init__(self):
+		self.tests = {}
+		self.finished = False
+	
+	def __setitem__(self, key, item):
+		self.tests[key] = item
+	
+	def __delitem__(self, key):
+		try:
+			del self.tests[key]
+		except KeyError:
+			pass
+	
+	def reset(self):
+		self.finished = False
+		self._clear_old_tests()
+		self._mark_old_tests()
+	
+	def finish(self):
+		self.finished = True
+		self._clear_old_tests()
+		
+	def _clear_old_tests(self):
+		for test in self.tests.values():
+			if test.old:
+				del self.tests[test.id]
+	
+	def _mark_old_tests(self):
+		for test in self.tests.values():
+			test.old = True
+
+	def current_tests(self):
+		return [test for test in self.tests.values() if not test.old]
+	
+	def __str__(self):
+		if self.finished and len(self.current_tests()) == 0:
+			return '<h1 id="success">All tests ran successfully</h1>'
+		sorted_tests = sorted(self.tests.values(), key=lambda t: t.time)
+		return '\n'.join([str(test) for test in sorted_tests])
+		
+class Test(object):
+	def __init__(self, id_, status, html):
+		self.id = id_
+		self.status = status
+		self.html = html
+
+		self.old = False
+		self.time = time.localtime()
+	
+	def __str__(self):
+		return """
+			<div class="test %s %s">
+				<h2 class="flush">%s</h2>
+				%s
+			</div>""" % (self.status, 'old' if self.old else 'current', self.id, self.html)
+
+class Notice(object):
+	levels = ['debug','info','error']
+	def __init__(self):
+		self.reset()
+		
+	def finish(self):
+		if self.lvl == 0:
+			self.val = ''
+
+	def reset(self):
+		self.val = ''
+		self.lvl = 0
+		
+	def set(self, val, lvl=0):
+		if lvl >= self.lvl:
+			self.val = val
+			self.lvl = lvl
+	
+	def __str__(self):
+		return """<span class="notice %s">%s</span>""" % (self.levels[self.lvl], self.val)
+
 class Page(object):
 	def __init__(self):
-		self.content = HtmlPage()
-		self.content.head = '<h1>loading!</h1>'
-		self.updates = []
+		self.status = Status()
+		self.summary = Summary()
+		self.tests = Tests()
+		self.notice = Notice()
+		self.content = HtmlPage(head=self.status, foot=self.summary, body=self.tests, notice=self.notice)
 	
 	def _process(self, prefix, node, callback = None):
 		try:
@@ -39,38 +160,46 @@ class Page(object):
 		self._process('_process_', node)
 	
 	def _process_new_run(self):
-		self.content.clear()
-		self.content.head = 'last run: %s' % (time.strftime("%H:%m:%S"),)
+		self._broadcast('reset')
+	
+	def _broadcast(self, methodname):
+		for listener in (self.status, self.summary, self.notice, self.tests):
+			getattr(listener, methodname)()
 	
 	def _process_results(self, attrs):
-		html = 'ran <span class="tests">%s tests</span>' % (attrs['ran'],)
-		failures = int(attrs['failures'])
-		errors = int(attrs['errors'])
-		
-		if failures or errors:
-			html += ' ('
-			if failures:
-				html += '<span class="failures">%s failures</span>' % (failures,)
-				if errors:
-					html += ", "
-			if errors:
-				html += '<span class="errors">%s errors</span>'  % (errors,)
-			html += ')'
-		self.content.foot = html
+		self._broadcast('finish')
+		for key in ('ran', 'failures', 'errors'):
+			setattr(self.summary, key, int(attrs[key]))
 	
 	def _process_reports(self):
 		# these appear to always be empty
 		pass
 	
 	def _process_test(self, attrs, children=[]):
-		output = []
-		output.append('<div class="test %s">' % (attrs['status'],))
-		output.append('<h2 flush>%s</h2>' % (h(attrs['id']),) )
+		self.summary.ran += 1
+		test_id = attrs['id']
+		self.notice.set("last test: %s" % (test_id,))
+		status = attrs['status']
 		
+		if status == 'failure':
+			self.summary.failures += 1
+		elif status == 'error':
+			self.summary.errors += 1
+		elif status == 'success':
+			del self.tests[test_id]
+			return
+		else:
+			raise ValueError("unknown status type: %s" % (status,))
+		
+		output = []
 		for child in children:
 			self._process('_format_', child, lambda s: output.append(s))
+		
 		output.append('</div>')
-		self.content.tests += '\n'.join(output)
+		output = "\n".join(output)
+		
+		test = Test(test_id, attrs['status'], output)
+		self.tests[test_id] = test
 	
 	def _format_traceback(self, children=[]):
 		output = []
@@ -114,13 +243,11 @@ class Page(object):
 
 
 class HtmlPage(object):
-	def __init__(self):
-		self.clear()
-	
-	def clear(self):
-		self.foot = ''
-		self.head = ''
-		self.tests = ''
+	def __init__(self, head, body, foot, notice=''):
+		self.head = head
+		self.body = body
+		self.foot = foot
+		self.notice = notice
 	
 	def __str__(self):
 		css_path = os.path.join(os.path.dirname(__file__), 'style.css')
@@ -131,9 +258,9 @@ class HtmlPage(object):
 				</head>
 				<body>
 					<div id="head" class="flush">%s</div>
-					<div id="notice"></div>
+					<div id="notice" class="flush">%s</div>
 					<div id="tests">%s</div>
 					<div id="summary" class="flush">%s</div>
 				</body>
 			</html>
-		""" % (css_path, self.head, self.tests, self.foot)
+		""" % (css_path, self.head, self.notice, self.body, self.foot)
