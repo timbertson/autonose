@@ -28,6 +28,7 @@ class Main(mandy.Command):
 		self.opt('config', str, default=None, desc='nosetests config file')
 		self.opt('curses', bool, default=False, desc='use the curses interface')
 		self.opt('osx', bool, default=False, desc='use the cocoa interface')
+		self.opt('gtk', bool, default=False, desc='use the gtk-webkit interface')
 		self.opt('wx', bool, default=False, desc='use the wxpython interface')
 	
 	def run(self, opts):
@@ -83,16 +84,20 @@ class Main(mandy.Command):
 	
 	def init_ui(self):
 		self.ui = None
+		if self.opts.osx or self.opts.wx or self.opts.gtk:
+			from ui.shared import Launcher
+
 		if self.opts.curses:
 			from ui.terminal import Terminal
 			self.ui = Terminal(self.nose_args)
 		elif self.opts.osx:
 			from ui.cocoa import App
-			from ui.shared import Launcher
 			self.ui = Launcher(self.nose_args, App.script)
 		elif self.opts.wx:
-			from ui.shared import Launcher
 			from ui.wxapp import App
+			self.ui = Launcher(self.nose_args, App.script)
+		elif self.opts.gtk:
+			from ui.gtkapp import App
 			self.ui = Launcher(self.nose_args, App.script)
 		else:
 			from ui.basic import Basic
