@@ -66,14 +66,14 @@ class App(object):
 	
 	def do(self, func, arg=None):
 		sel = objc.selector(func, signature="v@:")
-		self.app.performSelectorOnMainThread_withObject_waitUntilDone_(sel, arg, True)
+		self.app.performSelectorOnMainThread_withObject_waitUntilDone_(sel, arg, False)
 	
 	def update(self, page=None):
 		f = open('/tmp/html.html', 'w')
 		f.write(str(page))
 		f.close()
 		
-		self.do(self.app.doUpdate, page)
+		self.do(self.app.doUpdate, str(page))
 
 
 if __name__ == '__main__':
