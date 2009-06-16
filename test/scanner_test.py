@@ -3,6 +3,7 @@ import test_helper
 from mocktest import *
 from autonose import scanner
 import os, types
+import sys
 
 import __builtin__ as builtin
 
@@ -10,24 +11,29 @@ pickle_path = os.path.abspath('.autonose-depends.pickle')
 class ScannerTest(TestCase):
 	def test_should_load_saved_dependency_information(self):
 		picklefile = mock('pickle file')
-		mock_on(scanner).load.is_expected.\
+		mock_on(builtin).open.is_expected.\
 			with_(pickle_path).\
 			returning(picklefile.raw)
 		pickle = mock('unpickled info')
-		mock_on(scanner.pickle).load.is_expected.with_(picklefile).returning(pickle)
+		mock_on(scanner.pickle).load.is_expected.with_(picklefile.raw).returning(pickle.raw)
 		
 		loaded = scanner.load()
 		self.assertEqual(loaded, pickle.raw)
 		
-	def test_should_print_a_useful_error_on_load_failure(self):
-		import sys
+	def test_should_print_a_useful_error_on_load_failure_when_pickle_exists(self):
 		picklefile = mock('pickle file')
-		mock_on(scanner.pickle).load.\
-			is_expected.\
-			raising(StandardError('oh noes'))
+		mock_on(builtin).open.is_expected.returning(picklefile.raw)
+		mock_on(scanner.pickle).load.is_expected.raising(StandardError('oh noes'))
 		mock_on(sys).stderr.expects('write').with_(string_matching("Failed loading \"\.autonose-depends\.pickle\"\. you may have to delete it\..*"))
 		
 		self.assertRaises(SystemExit, scanner.load, args=(1,))
+	
+	def test_should_return_an_empty_dict_when_no_pickle_exists(self):
+		mock_on(builtin).open.is_expected.raising(IOError())
+		mock_on(scanner.pickle).load.is_not_expected
+		mock_on(sys).stderr.is_not_expected
+		
+		self.assertEqual(scanner.load(), {})
 	
 	def test_should_save_dependency_information(self):
 		picklefile = mock('pickle file')
