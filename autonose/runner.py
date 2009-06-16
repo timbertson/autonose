@@ -37,6 +37,8 @@ class Main(mandy.Command):
 		self.init_nose_args()
 		self.init_ui()
 		self.save_init_modules()
+		if self.opts.clear:
+			scanner.reset()
 		self.run_loop()
 	
 	def run_loop(self):
@@ -51,6 +53,7 @@ class Main(mandy.Command):
 				if self.opts.once:
 					break
 				debug("sleeping (%s)..." % (self.opts.wait,))
+				scanner.save(state)
 				time.sleep(self.opts.wait)
 		except Exception, e:
 			log.error(e.message)
@@ -104,7 +107,7 @@ class Main(mandy.Command):
 			self.ui = Basic(self.nose_args)
 	
 	def run_with_state(self, state):
-		info("running with %s affected files..." % (len(state.affected)))
+		info("running with %s affected and %s bad files..." % (len(state.affected), len(state.bad)))
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state)

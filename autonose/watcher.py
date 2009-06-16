@@ -76,7 +76,10 @@ class Watcher(nose.plugins.Plugin):
 		return file_util.relative(file_util.source(file_path))
 
 	def _update_test(self, test, state, err=None):
-		debug("test finished: %s with state: %s" % (test, state))
+		log_lvl = debug
+		if state != 'success':
+			log_lvl = info
+		log_lvl("test finished: %s with state: %s" % (test, state))
 		try:
 			filestamp = self.state[self._test_file(test)]
 			result = TestResult(state, test, err, self.start_time)

@@ -11,8 +11,11 @@ from shared.state import FileSystemState
 
 state = None
 
+def pickle_path():
+	return os.path.join(const.cwd, const.picklefile_name)
+
 def load():
-	path = os.path.join(const.cwd, const.picklefile_name)
+	path = pickle_path()
 	ret = None
 	try:
 		picklefile = open(path)
@@ -34,8 +37,8 @@ def load():
 def save(state_ = None):
 	if state_ is None:
 		state_ = state
-	picklefile = open(os.path.join(const.cwd, const.picklefile_name), 'w')
-	pickle.dump(state.dependencies, picklefile)
+	picklefile = open(pickle_path(), 'w')
+	pickle.dump(state_.dependencies, picklefile)
 	picklefile.close()
 	debug("saved dependencies file: %s" % (picklefile.name))
 
@@ -47,4 +50,8 @@ def scan(dependencies = None):
 		state = FileSystemState(dependencies)
 	state.update()
 	return state
-	
+
+def reset():
+	path = pickle_path()
+	if os.path.isfile(path):
+		os.remove(path)

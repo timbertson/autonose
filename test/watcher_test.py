@@ -50,15 +50,25 @@ class WatcherTest(TestCase):
 		watcher = Watcher()
 		state = mock('state').with_children(good=[],bad=[],affected=[])
 		config = mock('config').with_children(autonose=True)
-		mock_on(watcher_module).scanner.expects('scan').once().returning(state.raw)
+		mock_on(watcher_module.scanner).scan.is_expected.once().returning(state.raw)
+		watcher_module.global_state = None
 		watcher.configure(config.raw)
 	
 	def test_should_only_run_affected_and_bad_files(self):
+		# have to use an object with a path for debugging purposes - not ideal..
+		class Num(object):
+			def __init__(self, n):
+				self.n = n
+				self.path = "PATH"
+			def __repr__(self): return repr(self.n)
+			def __str__(self):  return str(self.n)
+			def __eq__(self, other): return self.n == other.n
 		watcher = Watcher()
-		good = set([1,2,3])
-		bad = set([4,5,6])
-		changed = set([7,8,9])
-		affected = set([10,11,12])
+		watcher_module.global_state = None
+		good = set(map(Num, [1,2,3]))
+		bad = set(map(Num, [4,5,6]))
+		changed = set(map(Num, [7,8,9]))
+		affected = set(map(Num, [10,11,12]))
 		state = mock('state').with_children(good=good, bad=bad, changed=changed, affected=affected)
 		config = mock('config').with_children(autonose=True)
 		mock_on(watcher_module).scanner.expects('scan').once().returning(state.raw)
