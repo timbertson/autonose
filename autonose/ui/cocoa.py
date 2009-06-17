@@ -10,7 +10,10 @@ import cgi
 import objc
 
 from shared import Main
-from cocoa_util import ScrollKeeper
+from cocoa_util.scroll_keeper import ScrollKeeper
+
+VOID = "v@:"
+
 
 class AutonoseApp(NSObject):
 	def initWithMainLoop_(self, mainLoop):
@@ -18,9 +21,13 @@ class AutonoseApp(NSObject):
 		self.mainLoop = mainLoop
 		self.scroll_keeper = None
 		return self
-		
+	
 	def run(self):
 		self.app = NSApplication.sharedApplication()
+		
+		nib = NSNib.alloc().initWithContentsOfURL_(NSURL.fileURLWithPath_(os.path.dirname(__file__) + '/cocoa_util/MainMenu.nib'))
+		nib.instantiateNibWithOwner_topLevelObjects_(self, None)
+		
 		origin = [100,200]
 		size = [800,600]
 		self.view = WebView.alloc().initWithFrame_frameName_groupName_(NSMakeRect(0,0, *size), None, None)
@@ -37,6 +44,7 @@ class AutonoseApp(NSObject):
 		
 		window.contentView().addSubview_(self.view)
 		window.makeKeyAndOrderFront_(None)
+		self.app.activateIgnoringOtherApps_(True)
 		try:
 			self.app.run()
 		except KeyboardInterrupt:
@@ -66,7 +74,7 @@ class App(object):
 	def __init__(self):
 		self.mainloop = Main(delegate=self)
 		self.app = AutonoseApp.alloc().initWithMainLoop_(self.mainloop)
-		sel = objc.selector(self.app.runMainLoop, signature="v@:")
+		sel = objc.selector(self.app.runMainLoop, signature=VOID)
 		self.main = NSThread.detachNewThreadSelector_toTarget_withObject_(sel, self.app, None)
 		self.app.run()
 	
@@ -74,7 +82,7 @@ class App(object):
 		self.do(self.app.doExit)
 	
 	def do(self, func, arg=None):
-		sel = objc.selector(func, signature="v@:")
+		sel = objc.selector(func, signature=VOID)
 		self.app.performSelectorOnMainThread_withObject_waitUntilDone_(sel, arg, False)
 	
 	def update(self, page=None):
