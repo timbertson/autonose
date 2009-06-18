@@ -20,6 +20,7 @@ class NullHandler(logging.Handler):
 
 class Main(mandy.Command):
 	def configure(self):
+		self._extra_nose_args = []
 		self.opt('clear', bool, default=False, opposite=False, desc='reset all dependency information')
 		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit')
 		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
@@ -30,7 +31,11 @@ class Main(mandy.Command):
 		self.opt('osx', bool, default=False, desc='use the cocoa interface')
 		self.opt('gtk', bool, default=False, desc='use the gtk-webkit interface')
 		self.opt('wx', bool, default=False, desc='use the wxpython interface')
+		self.opt('nose-arg', short='x', default='', desc='additional nose arg (use multiple times to add many arguments)', action=self._append_nose_arg)
 	
+	def _append_nose_arg(self, val):
+		self._extra_nose_args.append(val)
+		
 	def run(self, opts):
 		self.opts = opts
 		self.init_logging()
@@ -112,7 +117,8 @@ class Main(mandy.Command):
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state)
 		watcher_plugin.enable()
-		nose.run(argv=self.nose_args, addplugins=[watcher_plugin])
+		nose_args = self.nose_args + self._extra_nose_args
+		nose.run(argv=nose_args, addplugins=[watcher_plugin])
 
 def main(argv=None):
 	try:

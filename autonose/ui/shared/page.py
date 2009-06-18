@@ -226,10 +226,10 @@ class Page(object):
 	def _format_frame(self, attrs):
 		return """
 			<li class="frame">
-				<div class="line">from <code class="function">%s</code>, <a class="file" href="file://%s">%s</a>, line <span class="lineno">%s</span>:</div>
+				<div class="line">from <code class="function">%s</code>, <a class="file" href="file://%s?line=%s">%s</a>, line <span class="lineno">%s</span>:</div>
 				<div class="code"><pre>%s</pre></div>
 			</li>
-		""" % tuple(map(h, (attrs['function'], attrs['file'], shorten_file(attrs['file']), attrs['line'], attrs['text'])))
+		""" % tuple(map(h, (attrs['function'], attrs['file'], attrs['line'], shorten_file(attrs['file']), attrs['line'], attrs['text'])))
 	
 	def _format_cause(self, attrs, content=''):
 		return """

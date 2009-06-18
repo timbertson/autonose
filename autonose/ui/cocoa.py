@@ -8,6 +8,8 @@ from Cocoa import *
 from WebKit import WebView
 import cgi
 import objc
+import subprocess
+import cgi
 
 from shared import Main
 from cocoa_util.scroll_keeper import ScrollKeeper
@@ -18,10 +20,14 @@ VOID = "v@:"
 class AutonoseApp(NSObject):
 	def initWithMainLoop_(self, mainLoop):
 		self.init()
+		self._init_file_openers()
 		self.mainLoop = mainLoop
 		self.scroll_keeper = None
 		return self
 	
+	def _init_file_openers(self):
+		self.file_openers = [TextMateOpener(), DefaultOpener()]
+
 	def run(self):
 		self.app = NSApplication.sharedApplication()
 		
@@ -32,6 +38,7 @@ class AutonoseApp(NSObject):
 		size = [800,600]
 		self.view = WebView.alloc().initWithFrame_frameName_groupName_(NSMakeRect(0,0, *size), None, None)
 		self.view.setAutoresizingMask_(NSViewHeightSizable | NSViewWidthSizable)
+		self.view.setPolicyDelegate_(self)
 		
 		self.htmlView = self.view.mainFrame()
 		self.scroll_keeper = ScrollKeeper(self.htmlView)
@@ -63,11 +70,47 @@ class AutonoseApp(NSObject):
 	def webView_didFinishLoadForFrame_(self,view, frame):
 		if self.scroll_keeper: self.scroll_keeper.restore()
 	
+	def webView_decidePolicyForNavigationAction_request_frame_decisionListener_(self, view, action_info, request, frame, listener):
+		path = request.URL().path()
+		url = request.URL().absoluteString()
+		lineno = 0
+		if '?' in url:
+			try:
+				param_str = url.split('?')[-1]
+				params = cgi.parse_qs(param_str)
+				lineno = params['line'][0]
+			except (IndexError, KeyError):
+				pass
+		if path.endswith('.py'):
+			for opener in self.file_openers:
+				if opener.open(path, lineno): break # it's assumed that the last (default) opener will never fail
+			listener.ignore()
+		else:
+			listener.use()
+	
 	def runMainLoop(self):
 		self.releasePool = NSAutoreleasePool.alloc().init()
 		self.mainLoop.run()
 		self.releasePool.release()
 
+class TextMateOpener(object):
+	def __init__(self):
+		#FIXME: very dodgy...
+		self.tm_path = '/Applications/TextMate.app/Contents/Resources/mate'
+		self.has_tm = os.path.isfile(self.tm_path)
+	
+	def open(self, path, line):
+		if not self.has_tm:
+			return False
+		print line
+		subprocess.Popen([self.tm_path, path, '-wl', str(line)])
+		return True
+
+class DefaultOpener(object):
+	def open(self, path, line):
+		from Cocoa import NSWorkspace
+		NSWorkspace.sharedWorkspace().openFile_(path)
+		return True
 
 class App(object):
 	script = __file__
