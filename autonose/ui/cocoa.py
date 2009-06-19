@@ -13,9 +13,9 @@ import cgi
 
 from shared import Main
 from cocoa_util.scroll_keeper import ScrollKeeper
+from cocoa_util.file_openers import all_openers
 
 VOID = "v@:"
-
 
 class AutonoseApp(NSObject):
 	def initWithMainLoop_(self, mainLoop):
@@ -26,7 +26,8 @@ class AutonoseApp(NSObject):
 		return self
 	
 	def _init_file_openers(self):
-		self.file_openers = [TextMateOpener(), DefaultOpener()]
+		instantiate = lambda cls: cls()
+		self.file_openers = map(instantiate, all_openers)
 
 	def run(self):
 		self.app = NSApplication.sharedApplication()
@@ -73,6 +74,14 @@ class AutonoseApp(NSObject):
 	def webView_decidePolicyForNavigationAction_request_frame_decisionListener_(self, view, action_info, request, frame, listener):
 		path = request.URL().path()
 		url = request.URL().absoluteString()
+
+		if path.endswith('.py'):
+			self._open_source_file(path, url)
+			listener.ignore()
+		else:
+			listener.use()
+
+	def _line_from_url(self, url):
 		lineno = 0
 		if '?' in url:
 			try:
@@ -81,36 +90,18 @@ class AutonoseApp(NSObject):
 				lineno = params['line'][0]
 			except (IndexError, KeyError):
 				pass
-		if path.endswith('.py'):
-			for opener in self.file_openers:
-				if opener.open(path, lineno): break # it's assumed that the last (default) opener will never fail
-			listener.ignore()
-		else:
-			listener.use()
+		return lineno
+		
+	def _open_source_file(self, path, url):
+		for opener in self.file_openers:
+			if opener.open(path, self._line_from_url(url)): break # it's assumed that the last (default) opener will never fail
+		
+		
 	
 	def runMainLoop(self):
 		self.releasePool = NSAutoreleasePool.alloc().init()
 		self.mainLoop.run()
 		self.releasePool.release()
-
-class TextMateOpener(object):
-	def __init__(self):
-		#FIXME: very dodgy...
-		self.tm_path = '/Applications/TextMate.app/Contents/Resources/mate'
-		self.has_tm = os.path.isfile(self.tm_path)
-	
-	def open(self, path, line):
-		if not self.has_tm:
-			return False
-		print line
-		subprocess.Popen([self.tm_path, path, '-wl', str(line)])
-		return True
-
-class DefaultOpener(object):
-	def open(self, path, line):
-		from Cocoa import NSWorkspace
-		NSWorkspace.sharedWorkspace().openFile_(path)
-		return True
 
 class App(object):
 	script = __file__
