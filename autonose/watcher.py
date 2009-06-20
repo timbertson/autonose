@@ -19,7 +19,11 @@ global_state = None
 
 class Watcher(nose.plugins.Plugin):
 	name = 'autonose'
-	score = 800
+	score = 5000 # watcher is a mostly passive plugin so we shouldn't
+	             # interfere with anyone else, however if others steal
+	             # the handleError and handleFaure calls (as the
+	             # xml plugin does), autonose fails to remember which
+	             # tests failed - which is a Very Bad Thing (TM)
 	enabled = False
 	env_opt = 'AUTO_NOSE'
 	
@@ -92,11 +96,11 @@ class Watcher(nose.plugins.Plugin):
 	def addSuccess(self, test):
 		self._update_test(test, success)
 	
-	def addFailure(self, test, err):
+	def handleFailure(self, test, err):
 		err = test.plugins.formatFailure(test, err) or err
 		self._update_test(test, fail, err)
 	
-	def addError(self, test, err):
+	def handleError(self, test, err):
 		err = test.plugins.formatError(test, err) or err
 		self._update_test(test, error, err)
 	
