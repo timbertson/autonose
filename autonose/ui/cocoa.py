@@ -12,6 +12,7 @@ import subprocess
 import cgi
 
 from shared import Main
+from shared import urlparse
 from cocoa_util.scroll_keeper import ScrollKeeper
 from cocoa_util.file_openers import all_openers
 
@@ -72,31 +73,17 @@ class AutonoseApp(NSObject):
 		if self.scroll_keeper: self.scroll_keeper.restore()
 	
 	def webView_decidePolicyForNavigationAction_request_frame_decisionListener_(self, view, action_info, request, frame, listener):
-		path = request.URL().path()
 		url = request.URL().absoluteString()
-
-		if path.endswith('.py'):
-			self._open_source_file(path, url)
+		if urlparse.editable_file(url):
+			path, line = urlparse.path_and_line_from(url)
+			self._open_source_file(path, line)
 			listener.ignore()
 		else:
 			listener.use()
-
-	def _line_from_url(self, url):
-		lineno = 0
-		if '?' in url:
-			try:
-				param_str = url.split('?')[-1]
-				params = cgi.parse_qs(param_str)
-				lineno = params['line'][0]
-			except (IndexError, KeyError):
-				pass
-		return lineno
-		
-	def _open_source_file(self, path, url):
+	
+	def _open_source_file(self, path, line):
 		for opener in self.file_openers:
-			if opener.open(path, self._line_from_url(url)): break # it's assumed that the last (default) opener will never fail
-		
-		
+			if opener.open(path, line): break # it's assumed that the last (default) opener will never fail
 	
 	def runMainLoop(self):
 		self.releasePool = NSAutoreleasePool.alloc().init()
@@ -129,4 +116,3 @@ class App(object):
 
 if __name__ == '__main__':
 	App()
-	
