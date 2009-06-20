@@ -38,4 +38,6 @@ class StateTest(TestCase):
 	def test_file_stamp_should_be_indexable_by_relative_file_path(self):
 		pass
 	
+	def test_should_return_modified_files_without_propagating_changes(self):
+		pass
 

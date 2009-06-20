@@ -13,6 +13,9 @@ info = logging.getLogger(__name__ + '.summary').info
 
 def get_path(item): return item.path
 
+def union(*sets):
+	return reduce(lambda set_, new: set_.union(new), sets)
+
 class FileSystemState(object):
 	def __init__(self, dependencies = {}):
 		self.dependencies = dependencies
@@ -49,7 +52,7 @@ class FileSystemState(object):
 	
 	def _all_differences(self):
 		"""return all files that have been added, changed or deleted"""
-		return self.changed.union(self.added).union(self.removed)
+		return union(self.changed, self.added, self.removed)
 	
 	def _propagate_changes(self):
 		self._affected = self._all_differences()
