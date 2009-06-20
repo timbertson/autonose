@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 
 import sys
-
 import os
-
 import cgi
-import gtk
 import thread
+import subprocess
+
+import gtk
+import webkit
 import gobject
 
 from shared import Main
-
-# uesful links:
-# http://www.aclevername.com/articles/python-webgui/#message-passing-with-mozilla-gtkmozembed
-# http://code.google.com/p/pywebkitgtk/wiki/HowDoI
+from shared import urlparse
 
 class App(object):
 	script = __file__
@@ -24,7 +22,7 @@ class App(object):
 		self.do(self.init_gtk)
 		self.mainloop.run()
 	
-	def exit(self):
+	def exit(self): # called by main thread
 		self.do(self._exit)
 	
 	def do(self, func, arg=None):
@@ -35,31 +33,42 @@ class App(object):
 			if page is None:
 				page = self.mainLoop.page
 			self.browser.load_html_string(str(page), "file://" + (os.path.dirname(__file__)))
-		self.do(self.app.doUpdate, page)
+		self.do(_update, page)
 	
-	def _exit(self):
+	def _exit(self, _=None):
 		pass
 	
+	def _navigation_requested_cb(self, view, frame, networkRequest):
+		url = networkRequest.get_uri()
+		opener = os.environ.get('EDITOR', 'gnome-open')
+		if not urlparse.editable_file(url):
+			return 0
+		path, line = urlparse.path_and_line_from(url)
+		subprocess.Popen([opener, path])
+		# return 1 to stop any other handlers running
+		return 1
+
 	def quitting(self):
 		return self.quitting
 	
-	def quit(self):
+	def quit(self, _=None):
 		self.quitting = True
 
 	def init_gtk(self, _):
 		self.window = gtk.Window()
 		self.window.set_title("Autonose")
-		window = gtk.Window()
-		box = gtk.VBox(homogeneous=False, spacing=0)
+		
+		scrollView = gtk.ScrolledWindow()
 		self.browser = webkit.WebView()
+		self.browser.connect('navigation_requested', self._navigation_requested_cb)
+		scrollView.add(self.browser)
 
-		window.set_default_size(800, 600)
-		window.connect('destroy', self.quit)
+		self.window.set_default_size(800, 600)
+		self.window.connect('destroy', self.quit)
 
-		window.add(box)
-		box.pack_start(self.browser, expand=True, fill=True, padding=0)
+		self.window.add(scrollView)
 		self.update("<h1>loading...</h1>")
-		window.show_all()
+		self.window.show_all()
 
 if __name__ == '__main__':
 	App()
