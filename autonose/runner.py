@@ -32,6 +32,7 @@ class Main(mandy.Command):
 		self.opt('gtk', bool, default=False, desc='use the gtk-webkit interface')
 		self.opt('wx', bool, default=False, desc='use the wxpython interface')
 		self.opt('nose-arg', short='x', default='', desc='additional nose arg (use multiple times to add many arguments)', action=self._append_nose_arg)
+		#TODO: --direct -> run only files that have changed, and their direct imports
 	
 	def _append_nose_arg(self, val):
 		self._extra_nose_args.append(val)
@@ -55,10 +56,10 @@ class Main(mandy.Command):
 					first_run = False
 					watcher.global_state = state
 					self.run_with_state(state)
+				scanner.save(state)
 				if self.opts.once:
 					break
 				debug("sleeping (%s)..." % (self.opts.wait,))
-				scanner.save(state)
 				time.sleep(self.opts.wait)
 		except Exception, e:
 			log.error(e.message)
