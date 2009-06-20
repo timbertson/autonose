@@ -70,7 +70,7 @@ class Tests(object):
 	def reset(self):
 		self.finished = False
 		self._clear_old_tests()
-		self._mark_old_tests()
+		self._mark_tests_as_old()
 	
 	def finish(self):
 		self.finished = True
@@ -81,7 +81,7 @@ class Tests(object):
 			if test.old:
 				del self.tests[test.id]
 	
-	def _mark_old_tests(self):
+	def _mark_tests_as_old(self):
 		for test in self.tests.values():
 			test.old = True
 
