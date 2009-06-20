@@ -1,5 +1,5 @@
 import cgi
-import time
+from datetime import datetime
 import os
 
 h = cgi.escape
@@ -38,19 +38,20 @@ class Status(object):
 		self.time = None
 	
 	def reset(self):
-		self.time = time.localtime()
+		self.time = datetime.now()
 		self.finish_time = None
 	
 	def finish(self):
-		self.finish_time = time.localtime()
+		self.finish_time = datetime.now()
 
 	def __str__(self):
 		time_format = "%H:%m:%S"
 		if self.time is None:
 			return "loading..."
 		if self.finish_time:
-			return 'run finished: %s' % (time.strftime(time_format, self.finish_time),)
-		return 'run started: %s' % (time.strftime("%H:%m:%S", self.time),)
+			diff = self.finish_time - self.time
+			return 'run finished: %s (%ss)' % (self.finish_time.strftime(time_format), diff.seconds)
+		return 'run started: %s' % (self.time.strftime("%H:%m:%S"),)
 
 class Tests(object):
 	def __init__(self):
@@ -100,7 +101,7 @@ class Test(object):
 		self.html = html
 
 		self.old = False
-		self.time = time.localtime()
+		self.time = datetime.now()
 	
 	def __str__(self):
 		return """
@@ -229,7 +230,7 @@ class Page(object):
 				<div class="line">from <code class="function">%s</code>, <a class="file" href="file://%s?line=%s">%s</a>, line <span class="lineno">%s</span>:</div>
 				<div class="code"><pre>%s</pre></div>
 			</li>
-		""" % tuple(map(h, (attrs['function'], attrs['file'], attrs['line'], shorten_file(attrs['file']), attrs['line'], attrs['text'])))
+		""" % (attrs['function'], attrs['file'], attrs['line'], shorten_file(attrs['file']), attrs['line'], attrs['text'])
 	
 	def _format_cause(self, attrs, content=''):
 		return """
