@@ -5,17 +5,9 @@ import termstyle
 
 from base import BaseUI
 
-def has_rednose():
-	try:
-		__import__('rednose')
-		return True
-	except ImportError:
-		return False
-
 class Basic(BaseUI):
 	def __init__(self, nose_args):
-		if has_rednose():
-			nose_args.append('--rednose')
+		pass
 
 	def finalize(self):
 		pass
