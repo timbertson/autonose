@@ -96,7 +96,7 @@ class WatcherTest(TestCase):
 		update_test.is_expected.once().with_(bad.raw, test_result.fail, bad_err.raw)
 
 		watcher.beforeTest(bad.raw)
-		watcher.addFailure(bad.raw, bad_err.raw)
+		watcher.handleFailure(bad.raw, bad_err.raw)
 
 	def test_should_update_test_on_error(self):
 		watcher = Watcher()
@@ -107,7 +107,7 @@ class WatcherTest(TestCase):
 		update_test.is_expected.once().with_(ugly.raw, test_result.error, ugly_err.raw)
 
 		watcher.beforeTest(ugly.raw)
-		watcher.addError(ugly.raw, ugly_err.raw)
+		watcher.handleError(ugly.raw, ugly_err.raw)
 
 	def test_should_update_test_on_skip(self):
 		watcher = Watcher()
