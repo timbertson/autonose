@@ -91,12 +91,12 @@ class Tests(object):
 	def __str__(self):
 		if self.finished and len(self.current_tests()) == 0:
 			return '<h1 id="success">All tests ran successfully</h1>'
-		sorted_tests = sorted(self.tests.values(), key=lambda t: t.time)
+		sorted_tests = sorted(self.tests.values(), key=lambda t: t.id)
 		return '\n'.join([str(test) for test in sorted_tests])
 		
 class Test(object):
-	def __init__(self, id_, status, html):
-		self.id = id_
+	def __init__(self, id, status, html):
+		self.id = id
 		self.status = status
 		self.html = html
 
