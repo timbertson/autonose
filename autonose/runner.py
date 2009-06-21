@@ -6,6 +6,7 @@ import os
 import sys
 import time
 import logging
+import traceback
 
 import scanner
 import watcher
@@ -21,16 +22,20 @@ class NullHandler(logging.Handler):
 class Main(mandy.Command):
 	def configure(self):
 		self._extra_nose_args = []
+		# run control
 		self.opt('clear', bool, default=False, opposite=False, desc='reset all dependency information')
-		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit')
+		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit (uses --console)')
+		self.opt('wait', int, default=2, desc='sleep time (between filesystem scans)')
+		
+		# logging
 		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
 		self.opt('info', bool, default=False, opposite=False, desc='show more info about what files have changed')
-		self.opt('wait', int, default=2, desc='sleep time (between filesystem scans)')
+		
+		# UI
+		self.opt('console', bool, default=False, desc='use the console interface (no GUI)')
+
+		# nose options
 		self.opt('config', str, default=None, desc='nosetests config file')
-		self.opt('curses', bool, default=False, desc='use the curses interface')
-		self.opt('osx', bool, default=False, desc='use the cocoa interface')
-		self.opt('gtk', bool, default=False, desc='use the gtk-webkit interface')
-		self.opt('wx', bool, default=False, desc='use the wxpython interface')
 		self.opt('nose-arg', short='x', default='', desc='additional nose arg (use multiple times to add many arguments)', action=self._append_nose_arg)
 		#TODO: --direct -> run only files that have changed, and their direct imports
 	
@@ -63,7 +68,6 @@ class Main(mandy.Command):
 				time.sleep(self.opts.wait)
 		except Exception, e:
 			log.error(e.message)
-			import traceback
 			traceback.print_exc()
 			raise
 		finally:
@@ -93,25 +97,26 @@ class Main(mandy.Command):
 	
 	def init_ui(self):
 		self.ui = None
-		if self.opts.osx or self.opts.wx or self.opts.gtk:
-			from ui.shared import Launcher
-
-		if self.opts.curses:
-			from ui.terminal import Terminal
-			self.ui = Terminal(self.nose_args)
-		elif self.opts.osx:
-			from ui.cocoa import App
-			self.ui = Launcher(self.nose_args, App.script)
-		elif self.opts.wx:
-			from ui.wxapp import App
-			self.ui = Launcher(self.nose_args, App.script)
-		elif self.opts.gtk:
-			from ui.gtkapp import App
-			self.ui = Launcher(self.nose_args, App.script)
-		else:
+		def basic():
 			from ui.basic import Basic
 			self.ui = Basic(self.nose_args)
-	
+
+		if self.opts.console or self.opts.once:
+			return basic()
+
+		from ui.platform import default_app
+		try:
+			App = default_app()
+			from ui.shared import Launcher
+			self.ui = Launcher(self.nose_args, App.script)
+		except StandardError:
+			import traceback
+			traceback.print_exc()
+			print "UI load failed - falling back to basic console"
+			print '-'*40
+			time.sleep(3)
+			return basic()
+		
 	def run_with_state(self, state):
 		info("running with %s affected and %s bad files..." % (len(state.affected), len(state.bad)))
 		self.restore_init_modules()

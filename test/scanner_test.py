@@ -24,7 +24,7 @@ class ScannerTest(TestCase):
 		picklefile = mock('pickle file')
 		mock_on(builtin).open.is_expected.returning(picklefile.raw)
 		mock_on(scanner.pickle).load.is_expected.raising(StandardError('oh noes'))
-		mock_on(sys).stderr.expects('write').with_(string_matching("Failed loading \"\.autonose-depends\.pickle\"\. you may have to delete it\..*"))
+		mock_on(sys).stderr.expects('write').with_(string_matching("Failed loading \"\.autonose-depends\.pickle\"\. you may have to delete it.*"))
 		
 		self.assertRaises(SystemExit, scanner.load, args=(1,))
 	
