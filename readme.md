@@ -33,7 +33,7 @@ it can with them, but be warned that some plugins will interfere with autonose
 (particularly any that do their own output or manage test results).
 
 However, you can pass any options you want to nose by prefixing them with `-x`,
-or by using `--config=nose.cgf` if you have a config file.
+or by using `--config=nose.cfg` if you have a config file.
 (e.g. to turn on doctest, you should pass `-x--with-doctest` to autonose)
 
 ### Current Status

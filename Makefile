@@ -3,3 +3,6 @@ tasks:
 
 clean:
 	find . -iname '*.pyc' -or -iname '.*.pickle' | xargs rm
+
+upload:
+	./setup.py bdist_egg upload
