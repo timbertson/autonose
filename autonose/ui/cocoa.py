@@ -10,17 +10,24 @@ import cgi
 import objc
 import subprocess
 import cgi
+import logging
 
 from shared import Main
 from shared import urlparse
+from shared.ipc import IPC
 from cocoa_util.scroll_keeper import ScrollKeeper
 from cocoa_util.file_openers import all_openers
 
 VOID = "v@:"
 
+log = logging.getLogger(__name__)
+debug = log.debug
+info = log.info
+
 class AutonoseApp(NSObject):
-	def initWithMainLoop_(self, mainLoop):
+	def initWithMainLoop_runner_(self, mainLoop, runner):
 		self.init()
+		self.runner = runner
 		self._init_file_openers()
 		self.mainLoop = mainLoop
 		self.scroll_keeper = None
@@ -32,6 +39,7 @@ class AutonoseApp(NSObject):
 
 	def run(self):
 		self.app = NSApplication.sharedApplication()
+		self.app.setDelegate_(self)
 		
 		nib = NSNib.alloc().initWithContentsOfURL_(NSURL.fileURLWithPath_(os.path.dirname(__file__) + '/cocoa_util/MainMenu.nib'))
 		nib.instantiateNibWithOwner_topLevelObjects_(self, None)
@@ -60,8 +68,13 @@ class AutonoseApp(NSObject):
 			self.doExit()
 	
 	def doExit(self, *args):
+		self.runner = None # when doExit() is called, the main runner is already ending
 		self.app.terminate_(self)
-
+	
+	def applicationWillTerminate_(self, sender):
+		if self.runner:
+			self.runner.terminate()
+	
 	def doUpdate(self, page=None):
 		if page is None:
 			page = self.mainLoop.page
@@ -92,9 +105,9 @@ class AutonoseApp(NSObject):
 
 class App(object):
 	script = __file__
-	def __init__(self):
-		self.mainloop = Main(delegate=self)
-		self.app = AutonoseApp.alloc().initWithMainLoop_(self.mainloop)
+	def __init__(self, main_ipc):
+		self.mainloop = Main(delegate=self, input=main_ipc.stream)
+		self.app = AutonoseApp.alloc().initWithMainLoop_runner_(self.mainloop, main_ipc)
 		sel = objc.selector(self.app.runMainLoop, signature=VOID)
 		self.main = NSThread.detachNewThreadSelector_toTarget_withObject_(sel, self.app, None)
 		self.app.run()
@@ -107,12 +120,8 @@ class App(object):
 		self.app.performSelectorOnMainThread_withObject_waitUntilDone_(sel, arg, False)
 	
 	def update(self, page=None):
-		f = open('/tmp/html.html', 'w')
-		f.write(str(page))
-		f.close()
-		
 		self.do(self.app.doUpdate, str(page))
 
-
 if __name__ == '__main__':
-	App()
+	from shared.launcher import Launcher
+	Launcher.run_ui(App)

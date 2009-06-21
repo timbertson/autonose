@@ -4,6 +4,8 @@ import collections
 import pickle
 import base64
 
+EOF = '__EOF__'
+
 class Node(object):
 	def __init__(self, parent, name, attrs={}):
 		self.parent = parent
@@ -68,6 +70,8 @@ class Data(object):
 		parent = self.current.parent
 		if parent is self.root:
 			self.stream.write(self.encode(self.current))
+			self.stream.write('\n')
+			self.stream.flush()
 		self.current = parent
 
 	def characters(self,content):

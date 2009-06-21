@@ -15,15 +15,20 @@ from shared import urlparse
 
 class App(object):
 	script = __file__
-	def __init__(self):
-		self.mainloop = Main(delegate=self)
+	def __init__(self, runner):
+		self.quitting = False
+		self.runner = runner
+		self.mainloop = Main(delegate=self, input=runner.stream)
 		gtk.gdk.threads_init()
 		thread.start_new_thread(gtk.main, ())
 		self.do(self.init_gtk)
 		self.mainloop.run()
 	
 	def exit(self): # called by main thread
-		self.do(self._exit)
+		if self.quitting:
+			return # we already know!
+		self.do(self.quit)
+		self.do(lambda _=None: gtk.main_quit())
 	
 	def do(self, func, arg=None):
 		gobject.idle_add(func, arg)
@@ -35,9 +40,6 @@ class App(object):
 			self.browser.load_html_string(str(page), "file://" + (os.path.dirname(__file__)))
 		self.do(_update, page)
 	
-	def _exit(self, _=None):
-		pass
-	
 	def _navigation_requested_cb(self, view, frame, networkRequest):
 		url = networkRequest.get_uri()
 		opener = os.environ.get('EDITOR', 'gnome-open')
@@ -48,11 +50,9 @@ class App(object):
 		# return 1 to stop any other handlers running
 		return 1
 
-	def quitting(self):
-		return self.quitting
-	
 	def quit(self, _=None):
 		self.quitting = True
+		self.runner.terminate()
 
 	def init_gtk(self, _):
 		self.window = gtk.Window()
@@ -71,5 +71,5 @@ class App(object):
 		self.window.show_all()
 
 if __name__ == '__main__':
-	App()
-	
+	from shared.launcher import Launcher
+	Launcher.run_ui(App)

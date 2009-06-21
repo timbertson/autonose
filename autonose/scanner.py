@@ -22,7 +22,7 @@ def load():
 		try:
 			ret = pickle.load(picklefile)
 		except StandardError, e:
-			errmsg = "Failed loading \"%s\". you may have to delete it. %s: %s" % (const.picklefile_name, type(e).__name__, e.message)
+			errmsg = "Failed loading \"%s\". you may have to delete it (Error was %s: \"%s\")" % (const.picklefile_name, type(e).__name__, e.message)
 			log.error(errmsg, exc_info=1)
 			print >> sys.stderr, errmsg
 			sys.exit(1)
