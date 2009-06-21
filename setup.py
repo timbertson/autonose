@@ -3,12 +3,12 @@
 from setuptools import *
 setup(
 	name='autonose',
-	version='0.0.1',
+	version='0.1.0',
 	author_email='tim3d.junk+autonose@gmail.com',
 	author='Tim Cuthbertson',
-	url='http://github.com/gfxmonk/autonose/tree',
-	description="test tracker for nosetests",
-	long_description="test tracker for nosetests",
+	url='http://github.com/gfxmonk/autonose',
+	description="continuous test tracker / runner for nosetests",
+	long_description="continuous test tracker / runner for nosetests",
 	packages = find_packages(exclude=['test', 'test.*']),
 	entry_points = {
 		'nose.plugins.0.11': ['autonose = autonose:Watcher'],
@@ -31,5 +31,6 @@ setup(
 		'nosexml',
 		'mandy',
 		'snakefood',
+		'termstyle',
 	],
 )
