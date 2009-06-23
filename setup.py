@@ -28,7 +28,7 @@ setup(
 	install_requires=[
 		'setuptools',
 		'nose>=0.11',
-		'nosexml',
+		'nosexml>=0.2', # see http://code.google.com/p/python-nosexml/ (svn checkout http://python-nosexml.googlecode.com/svn/trunk/ nosexml && cd nosexml && python setup.py develop)
 		'mandy',
 		'snakefood',
 		'termstyle',
