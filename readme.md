@@ -15,15 +15,6 @@ file it `import`s has changed.
 
 It's really that simple. try `autonose --help` for configuration options.
 
-**note**: if you can't find the nosexml dependency, you may need to:
-
-	svn checkout http://python-nosexml.googlecode.com/svn/trunk/ nosexml
-	cd nosexml
-	python setup.py develop
-
-until nosexml 0.2 gets packaged properly
-
-
 Autonose currently has a native GUI for OSX and GTK. If neither of those
 are available to you, you can instead run the console version (with the
 `--console` option).

@@ -30,11 +30,14 @@ class Launcher(object):
 		return IPC(pid=ui_pid, stream=writable)
 	
 	def setup_args(self, nose_args):
-		path_to_formatter = __name__.split('.')[:-1]
-		path_to_formatter += ['data','Data']
-		path_to_formatter = '.'.join(path_to_formatter)
 		nose_args.append('--xml')
-		nose_args.append('--xml-formatter=%s' % (path_to_formatter,))
+		nose_args.append('--xml-formatter=%s' % (self._path_to_formatter(),))
+	
+	def _path_to_formatter(self):
+		path = __name__.split('.')[:-1]
+		path += ['data','Data']
+		path = '.'.join(path)
+		return path
 
 	def finalize(self):
 		info("closing ui stream...")
@@ -59,5 +62,19 @@ class Launcher(object):
 		pid, fd = map(int, sys.argv[1:])
 		ipc = IPC(pid, os.fdopen(fd, 'r'))
 		return func(ipc)
-		
+	
+
+	#FIXME: remove once nosexml is packaged externally
+	def nosexml_plugin(self):
+		class obj(object):
+			pass
+		from nosexml.plugin import NoseXML
+		config = obj()
+		config.xml_enabled = True
+		config.xml_capture_stderr = True
+		config.xml_formatter = self._path_to_formatter()
+		plugin = NoseXML()
+		plugin.configure(config, None)
+		return [plugin]
+	addplugins = property(nosexml_plugin)
 

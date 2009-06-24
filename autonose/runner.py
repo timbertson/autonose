@@ -124,7 +124,10 @@ class Main(mandy.Command):
 		watcher_plugin = watcher.Watcher(state)
 		watcher_plugin.enable()
 		nose_args = self.nose_args + self._extra_nose_args
-		nose.run(argv=nose_args, addplugins=[watcher_plugin])
+		
+		plugins = getattr(self.ui, 'addplugins') #FIXME: remove once nosexml is packaged externally
+
+		nose.run(argv=nose_args, addplugins = plugins + [watcher_plugin])
 
 def main(argv=None):
 	try:
