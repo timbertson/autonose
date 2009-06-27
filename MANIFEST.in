@@ -1,1 +1,2 @@
 recursive-include autonose *.nib
+recursive-include autonose *.css

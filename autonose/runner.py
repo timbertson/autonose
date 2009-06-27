@@ -68,7 +68,7 @@ class Main(mandy.Command):
 				time.sleep(self.opts.wait)
 		except Exception, e:
 			log.error(e.message)
-			traceback.print_exc()
+			log.error(traceback.format_exc())
 			raise
 		finally:
 			if self.ui is not None:
@@ -76,12 +76,13 @@ class Main(mandy.Command):
 				self.ui.finalize()
 	
 	def init_logging(self):
-		if self.opts.debug or self.opts.info:
-			lvl = logging.DEBUG if self.opts.debug else logging.INFO
-			format = '[%(levelname)s] %(name)s: %(message)s'
-			logging.basicConfig(level=lvl, format=format)
-		else:
-			logging.getLogger().addHandler(NullHandler())
+		format = '[%(levelname)s] %(name)s: %(message)s'
+		lvl = logging.ERROR
+		if self.opts.debug:
+			lvl = logging.DEBUG
+		elif self.opts.info:
+			lvl = logging.INFO
+		logging.basicConfig(level=lvl, format=format)
 
 	def init_nose_args(self):
 		self.nose_args = ['nosetests','--nologcapture', '--exe']
@@ -125,7 +126,7 @@ class Main(mandy.Command):
 		watcher_plugin.enable()
 		nose_args = self.nose_args + self._extra_nose_args
 		
-		plugins = getattr(self.ui, 'addplugins') #FIXME: remove once nosexml is packaged externally
+		plugins = getattr(self.ui, 'addplugins', []) #FIXME: remove once nosexml is packaged externally
 
 		nose.run(argv=nose_args, addplugins = plugins + [watcher_plugin])
 
