@@ -54,6 +54,7 @@ class Status(object):
 		return 'run started: %s' % (self.time.strftime("%H:%m:%S"),)
 
 class Tests(object):
+	success_msg = '<h1 id="success">All tests ran successfully</h1>'
 	def __init__(self):
 		self.tests = {}
 		self.finished = False
@@ -90,25 +91,43 @@ class Tests(object):
 	
 	def __str__(self):
 		if self.finished and len(self.current_tests()) == 0:
-			return '<h1 id="success">All tests ran successfully</h1>'
+			return self.success_msg
+		if len(self.tests) == 0:
+			# not finished, but no tests failed yet...
+			return '<div class="old">%s</div>' % (self.success_msg,)
+			
 		sorted_tests = sorted(self.tests.values(), key=lambda t: t.id)
 		return '\n'.join([str(test) for test in sorted_tests])
 		
 class Test(object):
 	def __init__(self, id, status, html):
 		self.id = id
+		self.name = self.get_name(id)
 		self.status = status
 		self.html = html
 
 		self.old = False
 		self.time = datetime.now()
 	
+	def get_name(self, id_):
+		name = id_
+		name = name.replace('_', ' ')
+		try:
+			parts = name.split('.')
+			parts = name.split('.')[1:]
+			
+			parts[-1] = '<span>%s</span>' % (parts[-1],)
+				
+			name = '&nbsp;&nbsp;&raquo; '.join(parts)
+		except IndexError: pass
+		return name
+	
 	def __str__(self):
 		return """
 			<div class="test %s %s">
 				<h2 class="flush">%s</h2>
 				%s
-			</div>""" % (self.status, 'old' if self.old else 'current', self.id, self.html)
+			</div>""" % (self.status, 'old' if self.old else 'current', self.name, self.html)
 
 class Notice(object):
 	levels = ['debug','info','error']

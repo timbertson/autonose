@@ -100,7 +100,7 @@ pre, code {
 	padding-bottom:3em;
 }
 
-.test.old {
+.old {
 	opacity:0.4;
 }
 
@@ -112,6 +112,11 @@ pre, code {
 	padding:8px 0 4px 0;
 	border-bottom: 1px solid #ddd;
 	padding-left:1em;
+	font-weight: bold;
+}
+.test h2 span{
+	font-weight:normal;
+	font-style: normal;
 }
 
 .test.success h2{ color:#383; background:#efe; border-bottom: 1px solid #ddd;}
