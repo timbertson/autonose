@@ -84,13 +84,20 @@ class Watcher(nose.plugins.Plugin):
 		if state != 'success':
 			log_lvl = info
 		log_lvl("test finished: %s with state: %s" % (test, state))
+		debug(repr(test.address()))
+		test_file = self._test_file(test)
+		filestamp = None
 		try:
 			filestamp = self.state[self._test_file(test)]
+		except FileOutsideCurrentRoot, e:
+			log.warning('A test from outside the current root was run. The file is: %r' % (e.message))
+		except ValueError, e:
+			log.warning("test does not correspond to a known test file: %s" % (test_file,))
+
+		if filestamp:
 			result = TestResult(state, test, err, self.start_time)
 			filestamp.info.add(result)
 			debug(result)
-		except FileOutsideCurrentRoot:
-			log.warning('A test from outside the current root was run. The test is: %r' % (test))
 		self._current_test = None
 		
 	def addSuccess(self, test):

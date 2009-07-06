@@ -77,7 +77,7 @@ class Main(mandy.Command):
 	
 	def init_logging(self):
 		format = '[%(levelname)s] %(name)s: %(message)s'
-		lvl = logging.ERROR
+		lvl = logging.WARNING
 		if self.opts.debug:
 			lvl = logging.DEBUG
 		elif self.opts.info:
