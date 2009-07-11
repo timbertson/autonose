@@ -132,7 +132,7 @@ class Main(mandy.Command):
 
 def main(argv=None):
 	try:
-		Main()
+		Main(argv)
 		sys.exit(0)
 	except KeyboardInterrupt:
 		sys.exit(1)
