@@ -14,6 +14,7 @@ class Launcher(object):
 		self.ui_proc = self.fork(script_file)
 		Data.realStream = self.ui_proc.stream
 		self.setup_args(nose_args)
+		self.addplugins = self.nosexml_plugin()
 	
 	def fork(self, script_file):
 		readable, writable = os.pipe()
@@ -76,5 +77,4 @@ class Launcher(object):
 		plugin = NoseXML()
 		plugin.configure(config, None)
 		return [plugin]
-	addplugins = property(nosexml_plugin)
 

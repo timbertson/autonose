@@ -22,11 +22,14 @@ class ScannerTest(TestCase):
 		
 	def test_should_print_a_useful_error_on_load_failure_when_pickle_exists(self):
 		picklefile = mock('pickle file')
-		mock_on(builtin).open.is_expected.returning(picklefile.raw)
-		mock_on(scanner.pickle).load.is_expected.raising(StandardError('oh noes'))
+		f = open(pickle_path, 'w')
+		f.write('garbage')
+		f.close()
 		mock_on(sys).stderr.expects('write').with_(string_matching("Failed loading \"\.autonose-depends\.pickle\"\. you may have to delete it.*"))
-		
-		self.assertRaises(SystemExit, scanner.load, args=(1,))
+		try:
+			self.assertRaises(SystemExit, scanner.load, args=(1,))
+		finally:
+			os.remove(pickle_path)
 	
 	def test_should_return_an_empty_dict_when_no_pickle_exists(self):
 		mock_on(builtin).open.is_expected.raising(IOError())
