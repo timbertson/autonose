@@ -85,7 +85,7 @@ class FileSystemState(object):
 				if dir_.startswith('.'):
 					dirs.remove(dir_)
 			for file_ in files:
-				rel_path = file_util.relative(os.path.join(root, file_))
+				rel_path = file_util.relative(os.path.join(root, file_), None)
 				if rel_path is not None and file_util.is_pyfile(rel_path):
 					self.inspect(rel_path, known_exists = True)
 				else:
