@@ -188,8 +188,6 @@ class Page(object):
 	
 	def _process_results(self, attrs):
 		self._broadcast('finish')
-		for key in ('ran', 'failures', 'errors'):
-			setattr(self.summary, key, int(attrs[key]))
 	
 	def _process_reports(self):
 		# these appear to always be empty
