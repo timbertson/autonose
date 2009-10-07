@@ -8,6 +8,9 @@ class RunnerTest(TestCase):
 	def test_should_run_nose_with_autonose_enabled(self):
 		pass
 	
+	def test_should_run_nose_with_autonose_disabled_if__all_specified(self):
+		pass
+	
 	def test_should_run_nose_with_debug(self):
 		pass
 	

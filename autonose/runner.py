@@ -26,6 +26,7 @@ class Main(mandy.Command):
 		self.opt('clear', bool, default=False, opposite=False, desc='reset all dependency information')
 		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit (uses --console)')
 		self.opt('wait', int, default=2, desc='sleep time (between filesystem scans)')
+		self.opt('all', bool, default=False, opposite=False, desc='always run all tests - no filtering')
 		
 		# logging
 		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
@@ -123,7 +124,8 @@ class Main(mandy.Command):
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state)
-		watcher_plugin.enable()
+		if not self.opts.all:
+			watcher_plugin.enable()
 		nose_args = self.nose_args + self._extra_nose_args
 		
 		plugins = getattr(self.ui, 'addplugins', []) #FIXME: remove once nosexml is packaged externally
