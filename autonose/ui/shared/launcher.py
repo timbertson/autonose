@@ -14,7 +14,6 @@ class Launcher(object):
 		self.ui_proc = self.fork(script_file)
 		Data.realStream = self.ui_proc.stream
 		self.setup_args(nose_args)
-		self.addplugins = self.nosexml_plugin()
 	
 	def fork(self, script_file):
 		readable, writable = os.pipe()
@@ -64,17 +63,3 @@ class Launcher(object):
 		ipc = IPC(pid, os.fdopen(fd, 'r'))
 		return func(ipc)
 	
-
-	#FIXME: remove once nosexml is packaged externally
-	def nosexml_plugin(self):
-		class obj(object):
-			pass
-		from nosexml.plugin import NoseXML
-		config = obj()
-		config.xml_enabled = True
-		config.xml_capture_stderr = True
-		config.xml_formatter = self._path_to_formatter()
-		plugin = NoseXML()
-		plugin.configure(config, None)
-		return [plugin]
-
