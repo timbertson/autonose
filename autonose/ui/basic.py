@@ -10,6 +10,6 @@ class Basic(BaseUI):
 		print "\n" * 10
 		subprocess.call('clear')
 
-		print >> sys.stderr, termstyle.inverted(termstyle.bold("# Running tests at %s  " % (time.strftime("%H:%m:%S", current_time))))
+		print >> sys.stderr, termstyle.inverted(termstyle.bold("# Running tests at %s  " % (time.strftime("%H:%M:%S", current_time))))
 		print >> sys.stderr, ""
 
