@@ -45,13 +45,13 @@ class Status(object):
 		self.finish_time = datetime.now()
 
 	def __str__(self):
-		time_format = "%H:%m:%S"
+		time_format = "%H:%M:%S"
 		if self.time is None:
 			return "loading..."
 		if self.finish_time:
 			diff = self.finish_time - self.time
 			return 'run finished: %s (%ss)' % (self.finish_time.strftime(time_format), diff.seconds)
-		return 'run started: %s' % (self.time.strftime("%H:%m:%S"),)
+		return 'run started: %s' % (self.time.strftime("%H:%M:%S"),)
 
 class Tests(object):
 	success_msg = '<h1 id="success">All tests ran successfully</h1>'
