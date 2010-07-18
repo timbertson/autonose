@@ -1,17 +1,16 @@
 import test_helper
 
+import logging
 from mocktest import *
 from autonose import scanner
 import os, types
 import sys
 
-import __builtin__ as builtin
-
 pickle_path = os.path.abspath('.autonose-depends.pickle')
 class ScannerTest(TestCase):
 	def test_should_load_saved_dependency_information(self):
 		picklefile = mock('pickle file')
-		mock_on(builtin).open.is_expected.\
+		mock_on(scanner).open_file.is_expected.\
 			with_(pickle_path).\
 			returning(picklefile.raw)
 		pickle = mock('unpickled info')
@@ -25,14 +24,20 @@ class ScannerTest(TestCase):
 		f = open(pickle_path, 'w')
 		f.write('garbage')
 		f.close()
-		mock_on(sys).stderr.expects('write').with_(string_matching("Failed loading \"\.autonose-depends\.pickle\"\. you may have to delete it.*"))
+		mock_on(sys).stderr.expects('write').with_(string_matching("Failed loading \"\.autonose-depends\.pickle\"\."))
+		mock_on(os).remove.is_expected.with_(pickle_path)
+		logger = logging.getLogger("autonose.scanner")
 		try:
+			logger.setLevel(logging.CRITICAL)
 			self.assertRaises(SystemExit, scanner.load, args=(1,))
 		finally:
-			os.remove(pickle_path)
+			logger.setLevel(logging.ERROR)
+			try:
+				os.remove(pickle_path)
+			except OSError: pass
 	
 	def test_should_return_an_empty_dict_when_no_pickle_exists(self):
-		mock_on(builtin).open.is_expected.raising(IOError())
+		mock_on(scanner).open_file.is_expected.raising(IOError())
 		mock_on(scanner.pickle).load.is_not_expected
 		mock_on(sys).stderr.is_not_expected
 		
@@ -42,7 +47,7 @@ class ScannerTest(TestCase):
 		picklefile = mock('pickle file')
 		dependencies = mock('dependencies')
 		state = mock('state').with_children(dependencies = dependencies.raw)
-		mock_on(builtin).open.is_expected.with_(pickle_path, 'w').\
+		mock_on(scanner).open_file.is_expected.with_(pickle_path, 'w').\
 			returning(picklefile.raw)
 		mock_on(scanner.pickle).dump.\
 			is_expected.with_(dependencies.raw, picklefile.raw)

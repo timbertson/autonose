@@ -2,8 +2,8 @@ import os
 import signal
 
 class IPC(object):
-	def __init__(self, pid, stream=None):
-		self.stream = stream
+	def __init__(self, pid, queue):
+		self.queue = queue
 		self.pid = pid
 	
 	def wait(self):

@@ -18,7 +18,7 @@ class App(object):
 	def __init__(self, runner):
 		self.quitting = False
 		self.runner = runner
-		self.mainloop = Main(delegate=self, input=runner.stream)
+		self.mainloop = Main(delegate=self, queue=runner.queue)
 		gtk.gdk.threads_init()
 		thread.start_new_thread(gtk.main, ())
 		self.do(self.init_gtk)
@@ -70,6 +70,3 @@ class App(object):
 		self.update("<h1>loading...</h1>")
 		self.window.show_all()
 
-if __name__ == '__main__':
-	from shared.launcher import Launcher
-	Launcher.run_ui(App)

@@ -1,11 +1,3 @@
-import nosexml
-import cgi
-import collections
-import pickle
-import base64
-
-EOF = '__EOF__'
-
 class Node(object):
 	def __init__(self, parent, name, attrs={}):
 		self.parent = parent
@@ -34,23 +26,19 @@ class Node(object):
 class Data(object):
 	"""
 	The least xml-like xmlFormatter plugin you'll ever see.
-	instead of xml, it just writes root-level elements to a stream
-	one line at a time as base64(pickle(node))
-	
-	Data.decode() is responsible for reversing this process on
-	the other side of the stream.
+	instead of xml, it just writes pickleable elements to a multiprocessing queue
 	"""
-	realStream = None
+	queue = None # will be set to a multiprocessing.Queue by the UI launcher
 	
-	def __new__(cls, *a, **kw):
-		if getattr(cls, 'singleton', None) is None:
-			cls.singleton = super(Data, cls).__new__(cls, *a, **kw)
-			cls.__init__(cls.singleton, *a, **kw)
-			cls.__init__ = lambda *a, **k: None
-		return cls.singleton
+	#def __new__(cls, *a, **kw):
+	#	if getattr(cls, 'singleton', None) is None:
+	#		cls.singleton = super(Data, cls).__new__(cls)
+	#		cls.__init__(cls.singleton, *a, **kw)
+	#		cls.__init__ = lambda *a, **k: None
+	#	return cls.singleton
 
 	def __init__(self, stream):
-		self.stream = self.realStream or stream
+		assert self.queue is not None, "queue has not been set on Data"
 		self.depth = 0
 		self.root = Node(None, 'root')
 		self.current = self.root
@@ -69,24 +57,11 @@ class Data(object):
 	def endElement(self, name=None):
 		parent = self.current.parent
 		if parent is self.root:
-			self.stream.write(self.encode(self.current))
-			self.stream.write('\n')
-			self.stream.flush()
+			self.queue.put(self.current)
 		self.current = parent
 
 	def characters(self,content):
 		if content:
 			self.current.add_content(content)
 
-	def encode(self, elem):
-		pickled = pickle.dumps(elem)
-		encoded = base64.encodestring(pickled)
-		# ensure no whitespace in the content (base64 does this for readability)
-		encoded_single_line = ''.join(encoded.split())
-		return encoded_single_line + '\n'
-	
-	@staticmethod
-	def decode(encoded):
-		decoded = base64.decodestring(encoded)
-		return pickle.loads(decoded + '\n')
 

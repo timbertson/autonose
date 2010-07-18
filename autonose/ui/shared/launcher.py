@@ -1,34 +1,38 @@
 import subprocess
 import os
 import sys
+from multiprocessing import Process, Queue
 
-from data import Data, EOF
+from data import Data
 from ipc import IPC
 
 import logging
 log = logging.getLogger(__name__)
 info = log.info
 
+# responsible for forking a process which will run
+# the passed-in callable (an App class) with a queue
+# and the pid of the main process
 class Launcher(object):
-	def __init__(self, nose_args, script_file):
-		self.ui_proc = self.fork(script_file)
-		Data.realStream = self.ui_proc.stream
+	def __init__(self, nose_args, app):
+		self.ui_proc = self.fork(app)
 		self.setup_args(nose_args)
 	
-	def fork(self, script_file):
-		readable, writable = os.pipe()
-		readable, writable = os.fdopen(readable), os.fdopen(writable, 'w')
-		
-		main_pid = os.getpid()
-		ui_pid = os.fork()
-		
-		if ui_pid == 0: # child code
-			writable.close() # unneeded in child
-			os.execlp('python', 'python', script_file, str(main_pid), str(readable.fileno()))
-			raise SystemExit(1) # execlp never returns
-		readable.close() # unneeded in parent
-		return IPC(pid=ui_pid, stream=writable)
-	
+	# run on child (ui) process
+	@classmethod
+	def child_init(cls, queue, app, parent_pid):
+		parent = IPC(pid=parent_pid, queue=queue)
+		app(parent)
+
+	def fork(self, app):
+		self.queue = Queue()
+		Data.queue = self.queue
+		pid = os.getpid()
+		proc = Process(name="autonose UI", target=self.child_init, args=(self.queue, app, pid))
+		proc.daemon = True
+		proc.start()
+		return proc
+
 	def setup_args(self, nose_args):
 		nose_args.append('--xml')
 		nose_args.append('--xml-formatter=%s' % (self._path_to_formatter(),))
@@ -39,27 +43,9 @@ class Launcher(object):
 		path = '.'.join(path)
 		return path
 
-	def finalize(self):
-		info("closing ui stream...")
-		try:
-			self.ui_proc.stream.write(EOF + '\n')
-			self.ui_proc.stream.flush()
-			self.ui_proc.stream.close()
-			info("waiting for UI to finish")
-			retcode = self.ui_proc.wait()
-			info("UI finished with return code %s" % (retcode,))
-			#TODO: do we care?
-			# if retcode != 0:
-			# 	raise RuntimeError("return code (%s) from UI is nonzero..." % (retcode,))
-		except KeyboardInterrupt:
-			info("UI signalled us back - ignoring")
-
 	def begin_new_run(self, current_time):
 		pass
-
-	@staticmethod
-	def run_ui(func):
-		pid, fd = map(int, sys.argv[1:])
-		ipc = IPC(pid, os.fdopen(fd, 'r'))
-		return func(ipc)
 	
+	def finalize(self):
+		pass
+

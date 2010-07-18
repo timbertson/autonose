@@ -11,6 +11,14 @@ from autonose.shared import file_util
 import time
 import os
 
+import logging
+def without_logging(func, level=logging.WARNING):
+	log = logging.disable(level)
+	try:
+		func()
+	finally:
+		log = logging.disable(logging.NOTSET)
+
 class WatcherTest(TestCase):
 	def test_should_be_enabled_when_given___autonose_option(self):
 		watcher = Watcher()
@@ -126,19 +134,19 @@ class WatcherTest(TestCase):
 		
 		watcher = Watcher(state.raw)
 
-		self.assertEqual(watcher.wantFile(path.raw), False)
+		without_logging(lambda: self.assertEqual(watcher.wantFile(path.raw), False), level=logging.ERROR)
 	
 	def test_should_disregard_tests_from_outside_current_root(self):
 		state = mock('state')
-		path_ = mock('file')
+		path = mock('file')
 
-		mock_on(file_util).relative.with_(path_.raw).raising(file_util.FileOutsideCurrentRoot()).is_expected.once()
+		mock_on(file_util).relative.with_(path.raw).raising(file_util.FileOutsideCurrentRoot()).is_expected.once()
 		
 		watcher = Watcher(state.raw)
 
 		# should not affect state
 		state.method('__getitem__').is_not_expected
-		self.assertEqual(watcher.wantFile(path_.raw), False)
+		without_logging(lambda: self.assertEqual(watcher.wantFile(path.raw), False), level=logging.ERROR)
 	
 	def test_should_attach_test_results_to_files(self):
 		start_time = 1234

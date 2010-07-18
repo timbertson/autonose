@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import nose
-import mandy
 import os
 import sys
 import time
 import logging
 import traceback
+from optparse import OptionParser
 
 import scanner
 import watcher
@@ -19,32 +19,35 @@ class NullHandler(logging.Handler):
 	def emit(self, record):
 		pass
 
-class Main(mandy.Command):
+class Main(object):
+	def __init__(self):
+		self.configure()
+
 	def configure(self):
-		self._extra_nose_args = []
+		parser = OptionParser()
 		# run control
-		self.opt('clear', bool, default=False, opposite=False, desc='reset all dependency information')
-		self.opt('once', bool, default=False, opposite=False, desc='run all outdated tests and then exit (uses --console)')
-		self.opt('wait', int, default=2, desc='sleep time (between filesystem scans)')
-		self.opt('all', bool, default=False, opposite=False, desc='always run all tests - no filtering')
+		parser.add_option('--clear', action='store_true', default=False, help='reset all dependency information')
+		parser.add_option('--once', action='store_true', default=False, help='run all outdated tests and then exit (uses --console)')
+		parser.add_option('--wait', type="int", default=2, help='sleep time (between filesystem scans)')
+		parser.add_option('--all', action='store_true', default=False, help='always run all tests - no filtering')
 		
 		# logging
-		self.opt('debug', bool, default=False, opposite=False, desc='show debug output')
-		self.opt('info', bool, default=False, opposite=False, desc='show more info about what files have changed')
+		parser.add_option('--debug', action="store_true", default=False, help='show debug output')
+		parser.add_option('--info', action="store_true", default=False, help='show more info about what files have changed')
 		
 		# UI
-		self.opt('console', bool, default=False, desc='use the console interface (no GUI)')
+		parser.add_option('--console', action="store_true", default=False, help='use the console interface (no GUI)')
 
 		# nose options
-		self.opt('config', str, default=None, desc='nosetests config file')
-		self.opt('nose-arg', short='x', default='', desc='additional nose arg (use multiple times to add many arguments)', action=self._append_nose_arg)
-		#TODO: --direct -> run only files that have changed, and their direct imports
-	
-	def _append_nose_arg(self, val):
-		self._extra_nose_args.append(val)
-		
-	def run(self, opts):
+		parser.add_option('--config', default=None, help='nosetests config file')
+		parser.add_option('-x', '--nose-arg', default=[], dest='nose_args', action="append", help='additional nose arg (use multiple times to add many arguments)') #TODO: --direct -> run only files that have changed, and their direct imports
+		opts, args = parser.parse_args()
+		if args:
+			parser.print_help()
+			sys.exit(2)
 		self.opts = opts
+	
+	def run(self):
 		self.init_logging()
 		self.init_nose_args()
 		self.init_ui()
@@ -68,7 +71,7 @@ class Main(mandy.Command):
 				debug("sleeping (%s)..." % (self.opts.wait,))
 				time.sleep(self.opts.wait)
 		except Exception, e:
-			log.error(e.message)
+			log.error(e)
 			log.error(traceback.format_exc())
 			raise
 		finally:
@@ -89,6 +92,7 @@ class Main(mandy.Command):
 		self.nose_args = ['nosetests','--nologcapture', '--exe']
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
+		self.nose_args.extend(self.opts.nose_args)
 
 	def save_init_modules(self):
 		self._sys_modules = set(sys.modules.keys())
@@ -110,7 +114,7 @@ class Main(mandy.Command):
 		try:
 			App = default_app()
 			from ui.shared import Launcher
-			self.ui = Launcher(self.nose_args, App.script)
+			self.ui = Launcher(self.nose_args, App)
 		except StandardError:
 			import traceback
 			traceback.print_exc()
@@ -121,17 +125,17 @@ class Main(mandy.Command):
 		
 	def run_with_state(self, state):
 		info("running with %s affected and %s bad files..." % (len(state.affected), len(state.bad)))
+		debug("args are: %r" % (self.nose_args,))
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state)
 		if not self.opts.all:
 			watcher_plugin.enable()
-		nose_args = self.nose_args + self._extra_nose_args
-		nose.run(argv=nose_args, addplugins = [watcher_plugin])
+		nose.run(argv=self.nose_args, addplugins = [watcher_plugin])
 
-def main(argv=None):
+def main():
 	try:
-		Main(argv)
+		Main().run()
 		sys.exit(0)
 	except KeyboardInterrupt:
 		sys.exit(1)

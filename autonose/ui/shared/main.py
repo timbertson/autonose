@@ -1,22 +1,19 @@
-from data import Data, EOF
+from data import Data
 from page import Page
 
 class Main(object):
-	def __init__(self, delegate, input):
+	def __init__(self, delegate, queue):
 		self.delegate = delegate
-		self.input = input
+		self.queue = queue
 		self.work = []
 		self.page = Page()
 
 	def run(self):
 		try:
-			while not self.input.closed:
-				line = self.input.readline()
-				if line is None or line.strip() == EOF:
-					break
-				line = line.strip()
-				if line:
-					self.process_line(line)
+			while True:
+				node = self.queue.get()
+				self.page.process_node(node)
+				self.delegate.update(self.page)
 		except KeyboardInterrupt:
 			pass
 		except StandardError:
@@ -25,9 +22,4 @@ class Main(object):
 			traceback.print_exc()
 		finally:
 			self.delegate.exit()
-	
-	def process_line(self, line):
-		node = Data.decode(line)
-		self.page.process_node(node)
-		self.delegate.update(self.page)
 	

@@ -14,21 +14,31 @@ state = None
 def pickle_path():
 	return os.path.join(const.cwd, const.picklefile_name)
 
+def open_file(path, *a):
+	return open(path, *a)
+
 def load():
 	path = pickle_path()
 	ret = None
+	loaded = False
+	tried_deleting = False
+	picklefile = None
 	try:
-		picklefile = open(path)
-		try:
-			ret = pickle.load(picklefile)
-		except StandardError, e:
-			errmsg = "Failed loading \"%s\". you may have to delete it (Error was %s: \"%s\")" % (const.picklefile_name, type(e).__name__, e.message)
-			log.error(errmsg, exc_info=1)
-			print >> sys.stderr, errmsg
-			sys.exit(1)
-		finally:
-			picklefile.close()
-		debug("loaded: %s" % (picklefile.name,))
+		while not loaded:
+			picklefile = open_file(path)
+			try:
+				ret = pickle.load(picklefile)
+				loaded = True
+			except StandardError, e:
+				errmsg = "Failed loading \"%s\". (Error was %s: \"%s\")" % (const.picklefile_name, type(e).__name__, e.message)
+				log.error(errmsg, exc_info=1)
+				print >> sys.stderr, errmsg
+				picklefile.close()
+				if tried_deleting:
+					sys.exit(1)
+				tried_deleting = True
+				os.remove(path)
+			debug("loaded: %s" % (picklefile.name,))
 	except IOError:
 		debug("IOError:", exc_info=sys.exc_info())
 		ret = {}
@@ -37,7 +47,7 @@ def load():
 def save(state_ = None):
 	if state_ is None:
 		state_ = state
-	picklefile = open(pickle_path(), 'w')
+	picklefile = open_file(pickle_path(), 'w')
 	pickle.dump(state_.dependencies, picklefile)
 	picklefile.close()
 	debug("saved dependencies file: %s" % (picklefile.name))

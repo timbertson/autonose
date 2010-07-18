@@ -11,6 +11,9 @@ log = logging.getLogger(__name__)
 debug = log.debug
 info = logging.getLogger(__name__ + '.summary').info
 
+# shut up about unfound imports
+logging.getLogger(snakefood.find.logname).setLevel(logging.ERROR)
+
 def get_path(item): return item.path
 
 def union(*sets):

@@ -106,7 +106,7 @@ class AutonoseApp(NSObject):
 class App(object):
 	script = __file__
 	def __init__(self, main_ipc):
-		self.mainloop = Main(delegate=self, input=main_ipc.stream)
+		self.mainloop = Main(delegate=self, queue=main_ipc.queue)
 		self.app = AutonoseApp.alloc().initWithMainLoop_runner_(self.mainloop, main_ipc)
 		sel = objc.selector(self.app.runMainLoop, signature=VOID)
 		self.main = NSThread.detachNewThreadSelector_toTarget_withObject_(sel, self.app, None)
@@ -122,6 +122,3 @@ class App(object):
 	def update(self, page=None):
 		self.do(self.app.doUpdate, str(page))
 
-if __name__ == '__main__':
-	from shared.launcher import Launcher
-	Launcher.run_ui(App)

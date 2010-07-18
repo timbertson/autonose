@@ -29,7 +29,6 @@ setup(
 		'setuptools',
 		'nose>=0.11',
 		'python-nosexml',
-		'mandy',
 		'snakefood',
 		'termstyle',
 	],
