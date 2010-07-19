@@ -3,7 +3,7 @@
 from setuptools import *
 setup(
 	name='autonose',
-	version='0.1.2',
+	version='0.1.3',
 	author_email='tim3d.junk+autonose@gmail.com',
 	author='Tim Cuthbertson',
 	url='http://github.com/gfxmonk/autonose',
