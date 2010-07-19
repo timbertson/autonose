@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+  <name>autonose</name>
+  <summary>continuous test runner for python</summary>
+  <description>
+</description>
+  <group>
+    <requires interface="http://gfxmonk.net/dist/0install/nose.xml">
+      <environment mode="prepend" name="PYTHONPATH"/>
+      <version not-before="0.11"/>
+    </requires>
+    <requires interface="http://gfxmonk.net/dist/0install/python-snakefood.xml">
+      <environment insert="lib/python/" mode="prepend" name="PYTHONPATH"/>
+    </requires>
+    <requires interface="http://gfxmonk.net/dist/0install/python-nosexml.xml">
+      <environment mode="prepend" name="PYTHONPATH"/>
+    </requires>
+    <requires interface="http://gfxmonk.net/dist/0install/python-termstyle.xml">
+      <environment mode="prepend" name="PYTHONPATH"/>
+    </requires>
+  </group>
+</interface>

@@ -129,9 +129,10 @@ class Main(object):
 		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state)
+		plugins = getattr(self.ui, 'plugins', [])
 		if not self.opts.all:
 			watcher_plugin.enable()
-		nose.run(argv=self.nose_args, addplugins = [watcher_plugin])
+		nose.run(argv=self.nose_args, addplugins = plugins + [watcher_plugin])
 
 def main():
 	try:

@@ -17,6 +17,7 @@ class Launcher(object):
 	def __init__(self, nose_args, app):
 		self.ui_proc = self.fork(app)
 		self.setup_args(nose_args)
+		self.plugins = [self.nosexml_plugin()]
 	
 	# run on child (ui) process
 	@classmethod
@@ -48,4 +49,16 @@ class Launcher(object):
 	
 	def finalize(self):
 		pass
+
+	def nosexml_plugin(self):
+		class obj(object):
+			pass
+		from nosexml.plugin import NoseXML
+		config = obj()
+		config.xml_enabled = True
+		config.xml_capture_stderr = True
+		config.xml_formatter = self._path_to_formatter()
+		plugin = NoseXML()
+		plugin.configure(config, None)
+		return plugin
 
