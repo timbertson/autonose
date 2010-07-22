@@ -89,7 +89,7 @@ class Main(object):
 		logging.basicConfig(level=lvl, format=format)
 
 	def init_nose_args(self):
-		self.nose_args = ['nosetests','--nologcapture', '--exe']
+		self.nose_args = ['nosetests','--nologcapture', '--nocapture', '--exe']
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 		self.nose_args.extend(self.opts.nose_args)
