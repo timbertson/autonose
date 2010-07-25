@@ -4,7 +4,7 @@
   <name>autonose</name>
   <summary>continuous test runner for python</summary>
   <description>
-</description>
+  </description>
   <group main="autonose/runner.py">
     <requires interface="http://gfxmonk.net/dist/0install/nose.xml">
       <environment insert="" mode="prepend" name="PYTHONPATH"/>
