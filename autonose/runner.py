@@ -89,12 +89,13 @@ class Main(object):
 		logging.basicConfig(level=lvl, format=format)
 
 	def init_nose_args(self):
-		self.nose_args = ['nosetests','--nologcapture', '--nocapture', '--exe']
+		self.nose_args = ['nosetests','--nologcapture', '--nocapture', '--exe', '--with-doctest']
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 		self.nose_args.extend(self.opts.nose_args)
 
 	def save_init_modules(self):
+		import StringIO
 		self._sys_modules = set(sys.modules.keys())
 
 	def restore_init_modules(self):
