@@ -3,10 +3,9 @@
 <interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
   <name>autonose</name>
   <summary>continuous test runner for python</summary>
-  <description>
 	<feed-for interface="http://gfxmonk.net/dist/0install/autonose.xml"/>
-
-</description>
+  <description>
+	</description>
   <group main="autonose/runner.py">
 		<implementation id="." released="2010-07-19" version="0.1.3-post" />
   </group>
