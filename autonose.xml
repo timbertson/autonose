@@ -4,6 +4,7 @@
 	<name>autonose</name>
 	<summary>continuous test runner for python</summary>
 	<publish mode="featured" xmlns="http://gfxmonk.net/dist/0install"/>
+	<homepage>http://github.com/gfxmonk/autonose</homepage>
 	<description>
 	</description>
 	<group main="autonose/runner.py">
