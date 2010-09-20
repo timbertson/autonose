@@ -97,9 +97,14 @@ class Main(object):
 	def save_init_modules(self):
 		import StringIO
 		self._sys_modules = set(sys.modules.keys())
+		[logging.debug("saving sys.modules[%s]" % (modname, )) for modname in self._sys_modules]
 
 	def restore_init_modules(self):
 		for modname in set(sys.modules.keys()).difference(self._sys_modules):
+			if modname.split(".")[0] == 'autonose':
+				logging.debug("ignoring sys.modules[%s]" % (modname,))
+				continue
+			logging.debug("removing sys.modules[%s]" % (modname,))
 			del(sys.modules[modname])
 	
 	def init_ui(self):

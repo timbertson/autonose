@@ -19,9 +19,6 @@ Autonose currently has a native GUI for OSX and GTK. If neither of those
 are available to you, you can instead run the console version (with the
 `--console` option).
 
-Here's the obligatory screenshot of autonose in action:
-![Autonose running on OSX](http://gfxmonk.net/upload/screenshot-autonose.png)
-
 .. but the real magic happens when you have autonose running *while* modifying
 your tests / code.
 
