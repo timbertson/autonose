@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+## NOTE: ##
+## setup.py is not maintained, and is only provided for convenience.
+## please see http://gfxmonk.net/dist/0install/index/ for
+## up-to-date installable packages.
+
 from setuptools import *
 setup(
 	name='autonose',
