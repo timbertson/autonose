@@ -30,5 +30,9 @@
     <manifest-digest sha256="a2dc93112eac871928968eadcf152692d3db26bc95563f2d7f2d862d72138818"/>
     <archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.4.tgz" size="56526"/>
   </implementation>
+		<implementation id="sha1new=7c64678c16456897239dc212c32b68dc8b51e75f" released="2010-11-05" version="0.1.5">
+    <manifest-digest sha256="e1e564b6ee95e96f48f800807b3fbb8def65e3942a9a5fc381451277b03edf2f"/>
+    <archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.5.tgz" size="57430"/>
+  </implementation>
 	</group>
 </interface>

@@ -8,10 +8,10 @@
 from setuptools import *
 setup(
 	name='autonose',
-	version='0.1.4',
+	version='0.1.5',
 	author_email='tim3d.junk+autonose@gmail.com',
 	author='Tim Cuthbertson',
-	url='http://github.com/gfxmonk/autonose',
+	url='http://gfxmonk.net/dist/0install/autonose.xml',
 	description="continuous test tracker / runner for nosetests",
 	long_description="continuous test tracker / runner for nosetests",
 	packages = find_packages(exclude=['test', 'test.*']),
@@ -35,7 +35,7 @@ setup(
 		'nose>=0.11',
 		'python-nosexml',
 		'snakefood',
-		'termstyle',
+		'python-termstyle',
 	],
 	dependency_links = [
 		"http://gfxmonk.net/misc/pypi/"
