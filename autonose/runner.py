@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import nose
-import os
 import sys
 import time
 import logging
 import traceback
+import multiprocessing
 from optparse import OptionParser
 
 import scanner
@@ -51,7 +51,6 @@ class Main(object):
 		self.init_logging()
 		self.init_nose_args()
 		self.init_ui()
-		self.save_init_modules()
 		if self.opts.clear:
 			scanner.reset()
 		self.run_loop()
@@ -94,19 +93,6 @@ class Main(object):
 			self.nose_args.append('--config=%s' % (self.opts.config))
 		self.nose_args.extend(self.opts.nose_args)
 
-	def save_init_modules(self):
-		import StringIO
-		self._sys_modules = set(sys.modules.keys())
-		[logging.debug("saving sys.modules[%s]" % (modname, )) for modname in self._sys_modules]
-
-	def restore_init_modules(self):
-		for modname in set(sys.modules.keys()).difference(self._sys_modules):
-			if modname.split(".")[0] == 'autonose':
-				logging.debug("ignoring sys.modules[%s]" % (modname,))
-				continue
-			logging.debug("removing sys.modules[%s]" % (modname,))
-			del(sys.modules[modname])
-	
 	def init_ui(self):
 		self.ui = None
 		def basic():
@@ -132,13 +118,20 @@ class Main(object):
 	def run_with_state(self, state):
 		info("running with %s affected and %s bad files..." % (len(state.affected), len(state.bad)))
 		debug("args are: %r" % (self.nose_args,))
-		self.restore_init_modules()
 		self.ui.begin_new_run(time.localtime())
 		watcher_plugin = watcher.Watcher(state)
 		plugins = getattr(self.ui, 'plugins', [])
 		if not self.opts.all:
 			watcher_plugin.enable()
-		nose.run(argv=self.nose_args, addplugins = plugins + [watcher_plugin])
+
+		runner = multiprocessing.Process(
+			name="nosetests",
+			target=nose.run,
+			kwargs=dict(argv=self.nose_args, addplugins = plugins + [watcher_plugin])
+		)
+		runner.daemon = True
+		runner.start()
+		runner.join()
 
 def main():
 	try:
