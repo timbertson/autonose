@@ -30,13 +30,6 @@ class Data(object):
 	"""
 	queue = None # will be set to a multiprocessing.Queue by the UI launcher
 	
-	#def __new__(cls, *a, **kw):
-	#	if getattr(cls, 'singleton', None) is None:
-	#		cls.singleton = super(Data, cls).__new__(cls)
-	#		cls.__init__(cls.singleton, *a, **kw)
-	#		cls.__init__ = lambda *a, **k: None
-	#	return cls.singleton
-
 	def __init__(self, stream):
 		assert self.queue is not None, "queue has not been set on Data"
 		self.depth = 0
