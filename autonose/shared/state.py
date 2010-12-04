@@ -1,9 +1,10 @@
 import os
+import sys
 import logging
+import threading
+import Queue as queue
 
-import snakefood.find
-
-from file_stamp import FileStamp
+from file_state import FileState
 import file_util
 from const import cwd as base
 
@@ -14,43 +15,146 @@ info = logging.getLogger(__name__ + '.summary').info
 # TODO: shut up about unfound imports
 #logging.getLogger(snakefood.find.logname).setLevel(logging.ERROR)
 
-def get_path(item): return item.path
-
 def union(*sets):
 	return reduce(lambda set_, new: set_.union(new), sets)
 
+VERSION = 1
+
 class FileSystemState(object):
-	def __init__(self, dependencies = {}):
-		self.dependencies = dependencies
+	def __init__(self, version=VERSION):
+		self.version = version
+		self.known_paths = {}
+
+	def check(self):
+		assert self.version == VERSION
+	
+	def __iter__(self):
+		return iter(self.known_paths.keys())
+
+	def __len__(self):
+		return len(self.known_paths)
+	
+	def items(self):
+		return self.known_paths.items()
+
+	def values(self):
+		return self.known_paths.values()
+
+	def __setitem__(self, item, value):
+		self.known_paths[item] = value
+
+	def __getitem__(self, item):
+		return self.known_paths[item]
+
+	def __delitem__(self, item):
+		del self.known_paths[item]
+	
+	def __repr__(self): return repr(self.known_paths)
+
+
+class FileSystemStateManager(object):
+	def __init__(self, state = None):
+		if state is None:
+			state = FileSystemState()
+		self.state = state
+		self.anything_changed = threading.Event()
+		self.lock = threading.Lock()
+		self._event_queue = queue.Queue()
 		self.reset()
 	
-	def reset(self, dependencies = None):
+	def reset(self):
 		"""
 		reset all diff-like attributes (changed, added, removed, etc)
 		"""
-		if dependencies is not None:
-			self.dependencies = dependencies
 		self.changed = set()
 		self.added = set()
 		self.removed = set()
+		self.affected = set()
 
-		self._affected = None
+		self._seen = set()
+		self.reset_scan()
+		self.anything_changed.clear()
+
+	def update(self):
+		with self.lock:
+			self.reset()
+			self._walk(base)
+			self._propagate_changes()
+
+	def reset_scan(self):
 		self._seen = set()
 	
-	def _get_affected(self):
-		if self._affected is None:
-			self._propagate_changes()
-		return self._affected
-	affected = property(_get_affected)
+	def state_changes(self):
+		self._process_events_thread = threading.Thread(target=self.process_events_forever, name="FileSystemState inotify event handler")
+		self._process_events_thread.daemon = True
+		self._process_events_thread.start()
+		import simple_notify
+		simple_notify.watch(base, callback=self._event_queue.put)
 
-	def _get_bad(self):
-		return set(filter(lambda item: item.info.ok() is False, self.dependencies.keys()))
-	bad = property(_get_bad)
+		while True:
+			self.anything_changed.wait()
+			with self.lock:
+				yield self
+				self.reset()
+	
+	def process_events_forever(self):
+		try:
+			while(True):
+				new_events = []
+				new_events.append(self._event_queue.get())
+				# suck up the rest of the events while we're at it
+				try:
+					while True:
+						new_events.append(self._event_queue.get(False))
+				except queue.Empty: pass
+				self._process_changes(new_events)
+		except:
+			#TODO: should be able to kill the main thread here
+			import traceback
+			traceback.print_exc(file=sys.stderr)
+			raise
+
+	def _process_changes(self, changes):
+		with self.lock:
+			self.reset_scan()
+			map(self._process_change, changes)
+			self._propagate_changes()
+			if self._all_differences():
+				self.anything_changed.set()
+
+	def _process_change(self, change):
+		try:
+			path = file_util.relative(change.path)
+		except file_util.FileOutsideCurrentRoot:
+			info("skipped: %s" % (change.path))
+			return
+		path = change.path
+		self.reset_scan()
+		if change.is_dir:
+			if change.exists:
+				self._walk(path)
+			else:
+				self._remove_dir(path)
+		else:
+			if not file_util.is_pyfile(path):
+				return
+
+			if change.exists:
+				self._inspect(path)
+			else:
+				self._remove(path)
+
+	def _remove_dir(self, path):
+		[self._remove(file) for file in self.state if file.startswith(os.path.join(path, ""))]
+
+	@property
+	def bad(self):
+		return set(filter(lambda item: not item.ok(), self.state.values()))
 	
 	def __repr__(self):
 		def _repr(attr):
 			return "%s: %r" % (attr, getattr(self, attr))
-		internals = ', '.join(map(_repr, ('changed','added','removed','dependencies')))
+		internals = ', '.join(map(_repr, ('changed','added','removed','state')))
 		return '<%s: (%s)>' % (self.__class__.__name__,internals)
 	
 	def _all_differences(self):
@@ -58,101 +162,70 @@ class FileSystemState(object):
 		return union(self.changed, self.added, self.removed)
 	
 	def _propagate_changes(self):
-		self._affected = self._all_differences()
+		self.affected = self._all_differences()
 		state_changed = True
 		while state_changed:
 			state_changed = False
-			for key, values in self.dependencies.items():
-				if key in self._affected: # already changed; ignore
+			for path, state in self.state.items():
+				if path in self.affected: # already changed; ignore
 					continue
-				if len(self._affected.intersection(values)) > 0: # any item has changed
+				if len(self.affected.intersection(state.dependencies)) > 0: # any item has changed
 					info("affected: %s (depends on: %s)" % (
-						get_path(key),
-						", ".join(map(get_path, self._affected.intersection(values)))))
-					self._affected.add(key)
+						path,
+						", ".join(self.affected.intersection(state.dependencies))))
+					self.affected.add(path)
 					state_changed = True
-		if len(self._affected) > 0:
-			info("all affected files:    \n%s" % ("\n".join(["  %s" % (get_path(item),) for item in sorted(self._affected)]),))
+		if len(self.affected) > 0:
+			info("all affected files:    \n%s" % ("\n".join(["  %s" % (item,) for item in sorted(self.affected)]),))
+		else:
+			debug("propagation complete - no affected files")
 
-	def anything_changed(self):
-		return sum(map(len, (self.changed, self.added, self.removed))) > 0
+	def _remove(self, path):
+		info("removed: %s" % path)
+		del self.state[path]
+		self.removed.add(path)
 	
-	def update(self):
-		"""
-		updates state by visiting all python files in `base`
-		"""
-		self.reset()
-		self.removed = set(self.dependencies)
-		for root, dirs, files in os.walk(base):
+	def _walk(self, dir):
+		for root, dirs, files in os.walk(dir):
 			for dir_ in dirs:
 				if dir_.startswith('.'):
 					dirs.remove(dir_)
 			for file_ in files:
-				rel_path = file_util.relative(os.path.join(root, file_), None)
-				if rel_path is not None and file_util.is_pyfile(rel_path):
-					self.inspect(rel_path, known_exists = True)
-				else:
-					debug("skipped non-python or non-cwd file: %s" % (file_,))
-		for removed_file in self.removed:
-			info("removed: %s" % removed_file.path)
-			del self.dependencies[removed_file.path]
+				try:
+					rel_path = file_util.relative(os.path.join(root, file_))
+				except file_util.FileOutsideCurrentRoot:
+					info("skipped non-cwd file: %s" % (file_,))
+					continue
+				self._inspect(rel_path)
 
-	def inspect(self, rel_path, known_exists = False):
+	def _inspect(self, rel_path):
+		if not file_util.is_pyfile(rel_path):
+			logging.debug("ignoring non-python file: %s" % (rel_path,))
+			return
+
 		if rel_path in self._seen:
 			debug("visited file twice: %s" % (rel_path))
 			return
 		self._seen.add(rel_path)
 
-		exists = (True if known_exists
-			else os.path.exists(os.path.join(base, rel_path)))
-
-		if rel_path in self.removed and exists:
-			self.removed.remove(rel_path) # it still exists!
-		
-		if rel_path in self.dependencies:
+		if rel_path in self.state:
 			self._check_for_change(rel_path)
 		else:
 			self._add(rel_path)
 	
 	def _add(self, rel_path):
+		file_state = FileState(rel_path)
 		info("added: %s" % (rel_path))
-		file_stamp = FileStamp(rel_path)
-		self.added.add(file_stamp)
-		self.dependencies[file_stamp] = self._get_dependencies(file_stamp)
+		self.added.add(rel_path)
+		self.state[rel_path] = file_state
 	
 	def _check_for_change(self, rel_path):
-		file_stamp = self._get_key_reference(self.dependencies, rel_path)
-		debug(file_stamp)
-		if file_stamp.stale():
+		file_state = self.state[rel_path]
+		if file_state.stale():
 			info("changed: %s" % (rel_path,))
-			file_stamp.update()
-			self.changed.add(file_stamp)
+			file_state.update()
+			self.changed.add(file_state)
 		else:
 			debug("unchanged: %s" % (rel_path,))
-
-	def _get_dependencies(self, file_stamp):
-		paths = self._get_direct_dependency_paths(file_stamp.path)
-		rel_paths = [FileStamp(file_util.relative(path)) for path in paths if file_util.relative(path, None) is not None]
-		debug("rel_paths: %s" % (rel_paths))
-		return rel_paths
-
-	@staticmethod
-	def _get_direct_dependency_paths(file_):
-		debug("fetching dependencies for %s" % (file_,))
-		files, errors = snakefood.find.find_dependencies(file_, verbose=False, process_pragmas=False)
-		if len(errors) > 0:
-			map(log.info, errors)
-		debug("found dependant files: %s" % (files,))
-		return files
-	
-	def __getitem__(self, name):
-		return self._get_key_reference(self.dependencies, name)
-	
-	@staticmethod
-	def _get_key_reference(dict_, key):
-		keys = list(dict_.keys())
-		if key not in dict_:
-			raise ValueError("%s does not appear in keys of dict: %s" % (key, keys))
-		return keys[keys.index(key)]
 
 

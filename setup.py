@@ -8,7 +8,7 @@
 from setuptools import *
 setup(
 	name='autonose',
-	version='0.1.5',
+	version='0.1.6',
 	author_email='tim3d.junk+autonose@gmail.com',
 	author='Tim Cuthbertson',
 	url='http://gfxmonk.net/dist/0install/autonose.xml',

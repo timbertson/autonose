@@ -13,9 +13,6 @@ debug = log.debug
 info = log.info
 
 from shared.test_result import TestResult, TestResultSet, success, skip, error, fail
-def get_paths(*items): return '\n + '.join([x.path for x in items])
-
-global_state = None
 
 class Watcher(nose.plugins.Plugin):
 	name = 'autonose'
@@ -27,22 +24,19 @@ class Watcher(nose.plugins.Plugin):
 	enabled = False
 	env_opt = 'AUTO_NOSE'
 	
-	def __init__(self, state=None):
-		self.state = state
+	def __init__(self, state_manager=None):
+		self.state_manager = state_manager
 		super(self.__class__, self).__init__()
 	
 	def _setup(self):
-		if self.state is None:
-			if global_state is not None:
-				self.state = global_state
-			else:
-				self.state = scanner.scan()
+		if self.state_manager is None:
+			self.state_manager = scanner.scan()
 		self.start_time = time.time()
-		self.files_to_run = set(self.state.affected).union(set(self.state.bad))
-		if len(self.state.affected):
-			info("changed files: %s" % (get_paths(*self.state.affected),))
-		if len(self.state.bad):
-			info("bad files: %s" % (get_paths(*self.state.bad),))
+		self.files_to_run = set(self.state_manager.affected).union(set(self.state_manager.bad))
+		if len(self.state_manager.affected):
+			info("changed files: %s" % (self.state_manager.affected,))
+		if len(self.state_manager.bad):
+			info("bad files: %s" % (self.state_manager.bad,))
 
 	def options(self, parser, env=os.environ):
 		parser.add_option(
@@ -88,16 +82,22 @@ class Watcher(nose.plugins.Plugin):
 		test_file = self._test_file(test)
 		filestamp = None
 		try:
-			filestamp = self.state[self._test_file(test)]
+			filestamp = self.state_manager.state[self._test_file(test)]
 		except FileOutsideCurrentRoot, e:
 			log.warning('A test from outside the current root was run. The file is: %r' % (e.message))
 		except ValueError, e:
 			log.warning("test does not correspond to a known test file: %s" % (test_file,))
 
-		if filestamp:
-			result = TestResult(state, test, err, self.start_time)
-			filestamp.info.add(result)
-			debug(result)
+		try:
+			if filestamp:
+				result = TestResult(state, test, err, self.start_time)
+				print repr(filestamp.info)
+				filestamp.info.add(result)
+				debug(result)
+		except StandardError:
+			import traceback
+			f = open('/tmp/exc', 'w')
+			traceback.print_exc(file=f)
 		self._current_test = None
 		
 	def addSuccess(self, test):
@@ -124,6 +124,6 @@ class Watcher(nose.plugins.Plugin):
 		debug('-'*80)
 	
 	def finalize(self, result=None):
-		debug(self.state)
-		scanner.save()
+		debug(self.state_manager)
+		scanner.save(self.state_manager.state)
 	

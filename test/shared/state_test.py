@@ -36,6 +36,7 @@ class StateTest(TestCase):
 		pass
 	
 	def test_file_stamp_should_be_indexable_by_relative_file_path(self):
+		#TODO: this is probably a poor idea...
 		pass
 	
 	def test_should_return_modified_files_without_propagating_changes(self):

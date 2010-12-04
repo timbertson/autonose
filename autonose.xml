@@ -1,9 +1,9 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <?xml-stylesheet type='text/xsl' href='interface.xsl'?>
-<interface uri="http://gfxmonk.net/dist/0install/autonose.xml" xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface" uri="http://gfxmonk.net/dist/0install/autonose.xml">
 	<name>autonose</name>
 	<summary>continuous test runner for python</summary>
-	<publish mode="featured" xmlns="http://gfxmonk.net/dist/0install"/>
+	<publish xmlns="http://gfxmonk.net/dist/0install" mode="featured"/>
 	<homepage>http://github.com/gfxmonk/autonose</homepage>
 	<description>
 	</description>
@@ -22,17 +22,36 @@
 			<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		</requires>
 		<implementation id="sha1new=eb88fcf1f881521f22aafadff65eec2b72510acc" released="2010-07-19" version="0.1.3">
-	
-		<manifest-digest sha256="c0a4ed1b5a1049f908452e54a9388149aad959ef07d8d68a66ebb48be9301267"/>
-		<archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.3.tgz" size="56476"/>
-	</implementation>
+			<manifest-digest sha256="c0a4ed1b5a1049f908452e54a9388149aad959ef07d8d68a66ebb48be9301267"/>
+			<archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.3.tgz" size="56476"/>
+		</implementation>
 		<implementation id="sha1new=e42eb2a4f6697984b3d65675c5d693341ccddd19" released="2010-07-31" version="0.1.4">
-    <manifest-digest sha256="a2dc93112eac871928968eadcf152692d3db26bc95563f2d7f2d862d72138818"/>
-    <archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.4.tgz" size="56526"/>
-  </implementation>
+			<manifest-digest sha256="a2dc93112eac871928968eadcf152692d3db26bc95563f2d7f2d862d72138818"/>
+			<archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.4.tgz" size="56526"/>
+		</implementation>
 		<implementation id="sha1new=7c64678c16456897239dc212c32b68dc8b51e75f" released="2010-11-05" version="0.1.5">
-    <manifest-digest sha256="e1e564b6ee95e96f48f800807b3fbb8def65e3942a9a5fc381451277b03edf2f"/>
-    <archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.5.tgz" size="57430"/>
-  </implementation>
+			<manifest-digest sha256="e1e564b6ee95e96f48f800807b3fbb8def65e3942a9a5fc381451277b03edf2f"/>
+			<archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.5.tgz" size="57430"/>
+		</implementation>
+	</group>
+	<group main="autonose/runner.py">
+		<requires interface="http://gfxmonk.net/dist/0install/nose.xml">
+			<environment insert="" mode="prepend" name="PYTHONPATH"/>
+			<version not-before="0.11"/>
+		</requires>
+		<requires interface="http://gfxmonk.net/dist/0install/python-snakefood.xml">
+			<environment insert="lib/python/" mode="prepend" name="PYTHONPATH"/>
+		</requires>
+		<requires interface="http://gfxmonk.net/dist/0install/python-nosexml.xml">
+			<environment insert="" mode="prepend" name="PYTHONPATH"/>
+		</requires>
+		<requires interface="http://gfxmonk.net/dist/0install/python-termstyle.xml">
+			<environment insert="" mode="prepend" name="PYTHONPATH"/>
+		</requires>
+		<requires interface="http://gfxmonk.net/dist/0install/simple_notify.xml">
+			<environment insert="" mode="prepend" name="PYTHONPATH"/>
+		</requires>
+		<implementation id="." version="0.1.6">
+		</implementation>
 	</group>
 </interface>

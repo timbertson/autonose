@@ -28,8 +28,8 @@ class Main(object):
 		# run control
 		parser.add_option('--clear', action='store_true', default=False, help='reset all dependency information')
 		parser.add_option('--once', action='store_true', default=False, help='run all outdated tests and then exit (uses --console)')
-		parser.add_option('--wait', type="int", default=2, help='sleep time (between filesystem scans)')
 		parser.add_option('--all', action='store_true', default=False, help='always run all tests - no filtering')
+		parser.add_option('--dump-state', action='store_true', default=False, help='just dump the saved dependency state')
 		
 		# logging
 		parser.add_option('--debug', action="store_true", default=False, help='show debug output')
@@ -53,22 +53,21 @@ class Main(object):
 		self.init_ui()
 		if self.opts.clear:
 			scanner.reset()
-		self.run_loop()
+		self.run_forever()
 	
-	def run_loop(self):
-		first_run = True
+	def run_forever(self):
 		try:
-			while True:
-				state = scanner.scan()
-				if state.anything_changed() or first_run:
-					first_run = False
-					watcher.global_state = state
-					self.run_with_state(state)
-				scanner.save(state)
-				if self.opts.once:
-					break
-				debug("sleeping (%s)..." % (self.opts.wait,))
-				time.sleep(self.opts.wait)
+			state_manager = scanner.load()
+			if self.opts.dump_state:
+				for item in state_manager.state.values():
+					print repr(item)
+				return
+			self.run_with_state(state_manager)
+			if self.opts.once:
+				return
+			for point_in_time in state_manager.state_changes():
+				# this is a generator, it will yield forever
+				self.run_with_state(state_manager)
 		except Exception, e:
 			log.error(e)
 			log.error(traceback.format_exc())
@@ -115,11 +114,12 @@ class Main(object):
 			time.sleep(3)
 			return basic()
 		
-	def run_with_state(self, state):
-		info("running with %s affected and %s bad files..." % (len(state.affected), len(state.bad)))
+	def run_with_state(self, state_manager):
+		info("running with %s affected and %s bad files... (%s files total)" % (len(state_manager.affected), len(state_manager.bad), len(state_manager.state)))
+		debug("state is: %r" % (state_manager.state,))
 		debug("args are: %r" % (self.nose_args,))
 		self.ui.begin_new_run(time.localtime())
-		watcher_plugin = watcher.Watcher(state)
+		watcher_plugin = watcher.Watcher(state_manager)
 		plugins = getattr(self.ui, 'plugins', [])
 		if not self.opts.all:
 			watcher_plugin.enable()
@@ -132,6 +132,7 @@ class Main(object):
 		runner.daemon = True
 		runner.start()
 		runner.join()
+		scanner.save(state_manager.state)
 
 def main():
 	try:
