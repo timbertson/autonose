@@ -48,8 +48,8 @@ def load():
 	return manager
 
 def save(state):
-	picklefile = open_file(pickle_path(), 'w')
 	assert isinstance(state, FileSystemState)
+	picklefile = open_file(pickle_path(), 'w')
 	pickle.dump(state, picklefile)
 	picklefile.close()
 	debug("saved dependencies file: %s" % (picklefile.name))

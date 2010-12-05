@@ -5,6 +5,7 @@ import time
 import os
 import threading
 import logging
+log = logging.getLogger(__name__)
 try:
 	from Cocoa import *
 	from WebKit import WebView
@@ -21,7 +22,6 @@ try:
 
 	VOID = "v@:"
 
-	log = logging.getLogger(__name__)
 	debug = log.debug
 	info = log.info
 
@@ -124,4 +124,4 @@ try:
 			self.do(self.app.doUpdate, str(page))
 
 except ImportError:
-	logging.warn("Warning: couldn't import Cocoa")
+	log.warn("Warning: couldn't import Cocoa")

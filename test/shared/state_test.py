@@ -35,7 +35,7 @@ class StateTest(TestCase):
 	def test_bad_should_be_all_affected_and_non__ok_files(self):
 		pass
 	
-	def test_file_stamp_should_be_indexable_by_relative_file_path(self):
+	def test_file_state_should_be_indexable_by_relative_file_path(self):
 		#TODO: this is probably a poor idea...
 		pass
 	

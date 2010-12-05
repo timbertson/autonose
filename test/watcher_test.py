@@ -150,7 +150,7 @@ class WatcherTest(TestCase):
 		start_time = 1234
 		
 		filesystem_state = mock('filesystem state').with_children(affected=[], bad=[])
-		file_stamp = mock('file stamp')
+		file_state = mock('file state')
 		
 		rel_path = 'relative source path.py'
 		source_path = mock('source path')
@@ -170,8 +170,8 @@ class WatcherTest(TestCase):
 		mock_on(file_util).relative.with_(source_path.raw).returning(rel_path)
 		
 		mock_on(TestResult).__new__.is_expected.with_(any_(type), test_state.raw, test.raw, err.raw, start_time).returning(new_test_result.raw)
-		filesystem_state.expects('__getitem__').with_(rel_path).returning(file_stamp.raw)
-		file_stamp.child('info').expects('add').with_(new_test_result.raw)
+		filesystem_state.expects('__getitem__').with_(rel_path).returning(file_state.raw)
+		file_state.child('info').expects('add').with_(new_test_result.raw)
 
 		watcher._update_test(test.raw, test_state.raw, err.raw)
 

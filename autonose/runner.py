@@ -4,6 +4,7 @@ import nose
 import sys
 import time
 import logging
+import logging.config
 import traceback
 import multiprocessing
 from optparse import OptionParser
@@ -34,6 +35,7 @@ class Main(object):
 		# logging
 		parser.add_option('--debug', action="store_true", default=False, help='show debug output')
 		parser.add_option('--info', action="store_true", default=False, help='show more info about what files have changed')
+		parser.add_option('--log-config', action="store", default=None, help='use a logging config file')
 		
 		# UI
 		parser.add_option('--console', action="store_true", default=False, help='use the console interface (no GUI)')
@@ -78,6 +80,10 @@ class Main(object):
 				self.ui.finalize()
 	
 	def init_logging(self):
+		if self.opts.log_config:
+			logging.config.fileConfig(self.opts.log_config)
+			return
+
 		format = '[%(levelname)s] %(name)s: %(message)s'
 		lvl = logging.WARNING
 		if self.opts.debug:

@@ -200,7 +200,7 @@ class FileSystemStateManager(object):
 
 	def _inspect(self, rel_path):
 		if not file_util.is_pyfile(rel_path):
-			logging.debug("ignoring non-python file: %s" % (rel_path,))
+			log.debug("ignoring non-python file: %s" % (rel_path,))
 			return
 
 		if rel_path in self._seen:
