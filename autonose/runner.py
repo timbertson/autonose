@@ -80,10 +80,6 @@ class Main(object):
 			for point_in_time in state_manager.state_changes():
 				# this is a generator, it will yield forever
 				self.run_with_state(state_manager)
-		except Exception, e:
-			log.error(e)
-			log.error(traceback.format_exc())
-			raise
 		finally:
 			if self.ui is not None:
 				info("finalizing UI")
@@ -119,7 +115,7 @@ class Main(object):
 		self.ui = None
 		def basic():
 			from ui.basic import Basic
-			self.ui = Basic(self.nose_args)
+			self.ui = Basic(self.test_result_ui_queue)
 
 		if self.opts.console or self.opts.once:
 			return basic()
@@ -130,7 +126,6 @@ class Main(object):
 			from ui.shared import Launcher
 			self.ui = Launcher(self.test_result_ui_queue, App)
 		except StandardError:
-			import traceback
 			traceback.print_exc()
 			print "UI load failed - falling back to basic console"
 			print '-'*40
@@ -147,8 +142,12 @@ class Main(object):
 				break
 			else:
 				event.affect_state(state)
+	
+	def check_children(self):
+		assert self.ui.is_running(), "The UI process has crashed"
 
 	def run_with_state(self, state_manager):
+		self.check_children()
 		info("running with %s affected and %s bad files... (%s files total)" % (len(state_manager.affected), len(state_manager.bad), len(state_manager.state)))
 		debug("state is: %r" % (state_manager.state,))
 		debug("args are: %r" % (self.nose_args,))
@@ -164,6 +163,7 @@ class Main(object):
 		runner.daemon = True
 		runner.start()
 		runner.join()
+		self.check_children()
 		self.save_state(state_manager)
 
 def main():

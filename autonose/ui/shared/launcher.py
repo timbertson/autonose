@@ -1,31 +1,34 @@
-import subprocess
 import os
-import sys
-from multiprocessing import Process, Queue
+from multiprocessing import Process
+import multiprocessing
 
-from ipc import IPC
+from process import RunnerProcess
+from main import Main
 
 import logging
 log = logging.getLogger(__name__)
 info = log.info
 
-# responsible for forking a process which will run
-# the passed-in callable (an App class) with a queue
-# and the pid of the main process
 class Launcher(object):
-	def __init__(self, result_queue, app):
-		self.ui_proc = self.fork(result_queue, app)
+	"""
+	On initialisation, forks a process which will run
+	the passed-in callable (an App class, i.e gtk App or Cocoa App) with an
+	event queue and and object representing the main (runner) process
+	"""
+	def __init__(self, result_queue, app_cls):
+		self.ui_proc = self.fork(result_queue, app_cls)
 	
 	# run on child (ui) process
 	@classmethod
-	def child_init(cls, queue, app, parent_pid):
-		parent = IPC(pid=parent_pid, queue=queue)
-		app(parent)
+	def child_init(cls, queue, app_cls, parent_pid):
+		parent = RunnerProcess(pid=parent_pid, queue=queue)
+		main = Main(runner_process=parent, app_cls=app_cls)
+		main.run()
 
-	def fork(self, queue, app):
+	def fork(self, queue, app_cls):
 		self.queue = queue
 		pid = os.getpid()
-		proc = Process(name="autonose UI", target=self.child_init, args=(self.queue, app, pid))
+		proc = Process(name="autonose UI", target=self.child_init, args=(self.queue, app_cls, pid))
 		proc.daemon = True
 		proc.start()
 		return proc
@@ -35,4 +38,7 @@ class Launcher(object):
 	
 	def finalize(self):
 		pass
+
+	def is_running(self):
+		return self.ui_proc in multiprocessing.active_children()
 

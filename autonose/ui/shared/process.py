@@ -1,7 +1,7 @@
 import os
 import signal
 
-class IPC(object):
+class RunnerProcess(object):
 	def __init__(self, pid, queue):
 		self.queue = queue
 		self.pid = pid

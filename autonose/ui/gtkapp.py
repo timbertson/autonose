@@ -10,19 +10,16 @@ import gtk
 import webkit
 import gobject
 
-from shared import Main
 from shared import urlparse
 
 class App(object):
 	script = __file__
-	def __init__(self, runner):
+	def __init__(self, mainloop):
 		self.quitting = False
-		self.runner = runner
-		self.mainloop = Main(delegate=self, queue=runner.queue)
+		self.mainloop = mainloop
 		gtk.gdk.threads_init()
 		thread.start_new_thread(gtk.main, ())
 		self.do(self.init_gtk)
-		self.mainloop.run()
 	
 	def exit(self): # called by main thread
 		if self.quitting:
@@ -52,7 +49,7 @@ class App(object):
 
 	def quit(self, _=None):
 		self.quitting = True
-		self.runner.terminate()
+		self.mainloop.terminate()
 
 	def init_gtk(self, _):
 		self.window = gtk.Window()

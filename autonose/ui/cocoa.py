@@ -9,14 +9,9 @@ log = logging.getLogger(__name__)
 try:
 	from Cocoa import *
 	from WebKit import WebView
-	import cgi
 	import objc
-	import subprocess
-	import cgi
 
-	from shared import Main
 	from shared import urlparse
-	from shared.ipc import IPC
 	from cocoa_util.scroll_keeper import ScrollKeeper
 	from cocoa_util.file_openers import all_openers
 
@@ -26,9 +21,8 @@ try:
 	info = log.info
 
 	class AutonoseApp(NSObject):
-		def initWithMainLoop_runner_(self, mainLoop, runner):
+		def initWithMainLoop_(self, mainLoop):
 			self.init()
-			self.runner = runner
 			self._init_file_openers()
 			self.mainLoop = mainLoop
 			self.scroll_keeper = None
@@ -69,12 +63,12 @@ try:
 				self.doExit()
 		
 		def doExit(self, *args):
-			self.runner = None # when doExit() is called, the main runner is already ending
+			self.mainLoop = None # when doExit() is called, the main runner is already ending
 			self.app.terminate_(self)
 		
 		def applicationWillTerminate_(self, sender):
-			if self.runner:
-				self.runner.terminate()
+			if self.mainLoop:
+				self.mainLoop.terminate()
 		
 		def doUpdate(self, page=None):
 			if page is None:
@@ -106,9 +100,8 @@ try:
 
 	class App(object):
 		script = __file__
-		def __init__(self, main_ipc):
-			self.mainloop = Main(delegate=self, queue=main_ipc.queue)
-			self.app = AutonoseApp.alloc().initWithMainLoop_runner_(self.mainloop, main_ipc)
+		def __init__(self, mainloop):
+			self.app = AutonoseApp.alloc().initWithMainLoop_(mainloop)
 			sel = objc.selector(self.app.runMainLoop, signature=VOID)
 			self.main = NSThread.detachNewThreadSelector_toTarget_withObject_(sel, self.app, None)
 			self.app.run()
