@@ -31,9 +31,6 @@
 		<requires interface="http://gfxmonk.net/dist/0install/python-snakefood.xml">
 			<environment insert="lib/python/" mode="prepend" name="PYTHONPATH"/>
 		</requires>
-		<requires interface="http://gfxmonk.net/dist/0install/python-nosexml.xml">
-			<environment insert="" mode="prepend" name="PYTHONPATH"/>
-		</requires>
 		<requires interface="http://gfxmonk.net/dist/0install/python-termstyle.xml">
 			<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		</requires>

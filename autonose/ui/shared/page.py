@@ -2,7 +2,8 @@ import cgi
 from datetime import datetime
 import os
 
-h = cgi.escape
+def h(o):
+	return cgi.escape(str(o))
 
 def shorten_file(file_path):
 	abs_ = os.path.abspath(os.path.realpath(file_path))
@@ -158,46 +159,28 @@ class Page(object):
 		self.notice = Notice()
 		self.content = HtmlPage(head=self.status, foot=self.summary, body=self.tests, notice=self.notice)
 	
-	def _process(self, prefix, node, callback = None):
+	def _format(self, _type, value):
 		try:
-			processor = getattr(self, prefix + str(node.name))
+			processor = getattr(self, '_format_' + str(_type))
 		except AttributeError, e:
 			print "Error processing results: %s" % (e.message,)
 			return None
-		kwargs = {}
-		if node.children:
-			kwargs['children'] = node.children
-		if node.content:
-			kwargs['content'] = node.content
-		if node.attrs:
-			kwargs['attrs'] = node.attrs
-		result = processor(**kwargs)
-		if callback is not None:
-			callback(result)
+		result = processor(value)
 		return result
-		
-	def process_node(self, node):
-		self._process('_process_', node)
-	
-	def _process_new_run(self):
+
+	def start_new_run(self):
 		self._broadcast('reset')
-	
+
+	def finish(self):
+		self._broadcast('finish')
+
 	def _broadcast(self, methodname):
 		for listener in (self.status, self.summary, self.notice, self.tests):
 			getattr(listener, methodname)()
-	
-	def _process_results(self, attrs):
-		self._broadcast('finish')
-	
-	def _process_reports(self):
-		# these appear to always be empty
-		pass
-	
-	def _process_test(self, attrs, children=[]):
+
+	def test_complete(self, test_id, status, outputs):
 		self.summary.ran += 1
-		test_id = attrs['id']
 		self.notice.set("last test: %s" % (test_id,))
-		status = attrs['status']
 		
 		if status == 'failure':
 			self.summary.failures += 1
@@ -210,51 +193,61 @@ class Page(object):
 			raise ValueError("unknown status type: %s" % (status,))
 		
 		output = []
-		for child in children:
-			self._process('_format_', child, lambda s: output.append(s))
+		for output_source, content in outputs:
+			formatted = self._format(output_source, content)
+			output.append(formatted)
 		
 		output.append('</div>')
 		output = "\n".join(output)
 		
-		test = Test(test_id, attrs['status'], output)
+		test = Test(test_id, status, output)
 		self.tests[test_id] = test
 	
-	def _format_traceback(self, children=[]):
+	def _format_traceback(self, value):
 		output = []
 		output.append("""<ul class="traceback flush">""")
 		
-		for child in reversed(children):
-			self._process('_format_', child, lambda s: output.append(s))
+		cls, message, trace = value
+		output.append(self._format_cause(cls, message))
+
+		for frame in trace:
+			output.append(self._format_frame(*frame))
+
 		output.append("</ul>")
 		return '\n'.join(output)
 	
 	def _format__stream(self, name, output):
+		if not output:
+			return ""
 		return """
 			<div class="capture %s">
 				<h3>Captured %s:</h3>
 				<pre>%s</pre>
-			</div>""" % (name, name, output)
+			</div>""" % (name, name, h(output))
 	
+	def _format_logging(self, content):
+		return self._format__stream('logging', "\n".join(content))
+
 	def _format_stderr(self, content):
 		return self._format__stream('stderr', content)
 	
 	def _format_stdout(self, content):
 		return self._format__stream('stdout', content)
 	
-	def _format_frame(self, attrs):
+	def _format_frame(self, filename, line_number, function_name, text):
 		return """
 			<li class="frame">
 				<div class="line">from <code class="function">%s</code>, <a class="file" href="file://%s?line=%s">%s</a>, line <span class="lineno">%s</span>:</div>
 				<div class="code"><pre>%s</pre></div>
 			</li>
-		""" % (attrs['function'], attrs['file'], attrs['line'], shorten_file(attrs['file']), attrs['line'], attrs['text'])
+		""" % tuple(map(h, (function_name, filename, line_number, shorten_file(filename), line_number, text)))
 	
-	def _format_cause(self, attrs, content=''):
+	def _format_cause(self, cls, message):
 		return """
 			<li class="cause">
 				<span class="type">%s</span>: <pre class="message">%s</pre>
 			</li>
-		""" % (attrs['type'], content)
+		""" % tuple(map(h, (cls.__name__, message)))
 	
 	def __str__(self):
 		return str(self.content)

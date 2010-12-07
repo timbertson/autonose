@@ -6,6 +6,11 @@ skip = 'skipped'
 _all_states = set([success, fail, error, skip])
 _acceptable_states = set([success, skip])
 
+import logging
+import traceback
+import itertools
+log = logging.getLogger(__name__)
+
 class TestResultSet(object):
 	"""
 	a set of TestResult objects that only keeps results from the most recent set
@@ -19,7 +24,7 @@ class TestResultSet(object):
 		self._clean()
 
 	def _clean(self):
-		if len(self.results) < 2:
+		if len(self.results) <= 1:
 			return
 		newest = max([result.time for result in self.results])
 		self.results = filter(lambda result: result.time >= newest, self.results)
@@ -27,7 +32,13 @@ class TestResultSet(object):
 	def ok(self):
 		return all([result.ok() for result in self.results])
 	
-	def __repr__(self): return repr(self.results)
+	def __repr__(self):
+		repr(self.results)
+		results = self.results
+		if results:
+			results = "\n   " + "\n   ".join(map(repr, results))
+		return "<TestResults [%s]: %s>" % ("ok" if self.ok() else "NOT OK", results)
+
 	def __str__(self):  return str(self.results)
 	
 	def __eq__(self, other):
@@ -36,36 +47,56 @@ class TestResultSet(object):
 		return not self == other
 	def __hash__(self):
 		hash(self.results)
-	
 
 class TestResult(object):
-	def __init__(self, state, test, err, time):
+	def __init__(self, state, id, name, path, err, run_start, outputs):
 		if state not in _all_states:
 			raise ValueError("state \"%s\" is invalid. Must be one of: %s" %
 				(state, ', '.join(sorted(_all_states))))
+		self.id = id
 		self.state = state
-		self.name = str(test)
-		self.time = time
-		self.err = None if err is None else str(err)
+		self.name = name
+		self.time = run_start
+		self.path = path
+		self.outputs = outputs
+		if err:
+			self.outputs.insert(0, ('traceback', self.extract_error(err)))
+		self.attrs = ['id','state','name','time','path']
 	
+	def extract_error(self, err):
+		cls, instance, tb = err
+		trace = traceback.extract_tb(tb)
+		message = str(instance)
+		marker = "begin captured"
+		if marker in message:
+			lines = message.splitlines()
+			lines = itertools.takewhile(lambda line: marker not in line, lines)
+			message = "\n".join(lines)
+		return (cls, message, trace)
+
 	def ok(self):
 		return self.state in _acceptable_states
 	
 	def __str__(self):
-		if self.err is not None:
-			return "error(%s): %s" % (type(self.err).__name__, self.err)
 		return "%s: %s@%s" % (self.state, self.name, self.time)
 	
 	def __repr__(self):
 		return "<TestResult: %s>" % (str(self),)
 	
 	def __eq__(self, other):
-		return (self.state == other.state and
-			self.name == other.name and
-			self.time == other.time and
-			self.err == other.err)
+		get_self = lambda a: getattr(self, a)
+		get_other = lambda a: getattr(other, a)
+		return map(get_self, self.attrs) == map(get_other, self.attrs)
 
 	def __ne__(self, other):
 		return not self == other
 	def __hash__(self):
 		hash(self.state, self.name, self.time, self.err)
+	
+	def affect_state(self, state):
+		state[self.path].test_results.add(self)
+
+	def affect_page(self, page):
+		#TODO: fill this in for reals
+
+		page.test_complete(test_id=self.id, status=self.state, outputs=self.outputs)

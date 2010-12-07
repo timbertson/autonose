@@ -33,11 +33,7 @@ setup(
 	install_requires=[
 		'setuptools',
 		'nose>=0.11',
-		'python-nosexml',
 		'snakefood',
 		'python-termstyle',
-	],
-	dependency_links = [
-		"http://gfxmonk.net/misc/pypi/"
 	],
 )

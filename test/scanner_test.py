@@ -52,7 +52,6 @@ class ScannerTest(TestCase):
 		mock_on(scanner.pickle).dump.\
 			is_expected.with_(dependencies.raw, picklefile.raw)
 		picklefile.expects('close')
-		print repr(state.raw.dependencies)
 		scanner.save(state.raw)
 
 	def test_should_scan_filesystem_for_updates(self):

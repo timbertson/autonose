@@ -1,65 +1,95 @@
 import nose
-import sys
 import logging
 import os
 import time
 
 from shared import file_util
 from shared.file_util import FileOutsideCurrentRoot
-import scanner
 
-log = logging.getLogger(__name__)
-debug = log.debug
-info = log.info
 
-from shared.test_result import TestResult, TestResultSet, success, skip, error, fail
+# because the logcapture plugin
+# sets logging to full throttle, we want to
+# explicitly keep track of the log level
+# requested by runner.py
+actual_log_level = logging.INFO
+def _log(lvl):
+	log = logging.getLogger(__name__)
+	def _(msg):
+		if actual_log_level >= lvl:
+			log.log(lvl, msg)
+	return _
+
+debug = _log(logging.DEBUG)
+info = _log(logging.INFO)
+warning = _log(logging.WARN)
+
+from shared.test_result import TestResult, success, skip, error, fail
+
+class TestRun(object):
+	is_test=False
+	def __init__(self, time):
+		self.time = time
+	
+	def affect_state(self, state):
+		pass
+
+	def affect_page(self, page):
+		page.start_new_run()
+
+class Completion(object):
+	is_test=False
+
+	def affect_page(self, page):
+		page.finish()
+
+def get_path(x): return x.path
 
 class Watcher(nose.plugins.Plugin):
 	name = 'autonose'
-	score = 5000 # watcher is a mostly passive plugin so we shouldn't
+	score = 8000 # watcher is a mostly passive plugin so we shouldn't
 	             # interfere with anyone else, however if others steal
 	             # the handleError and handleFaure calls (as the
 	             # xml plugin does), autonose fails to remember which
 	             # tests failed - which is a Very Bad Thing (TM)
-	enabled = False
+	enabled = True
 	env_opt = 'AUTO_NOSE'
 	
-	def __init__(self, state_manager=None):
+	def __init__(self, state_manager, output_queue):
 		self.state_manager = state_manager
+		self.output_queue = output_queue
+		self._setup()
 		super(self.__class__, self).__init__()
 	
 	def _setup(self):
-		if self.state_manager is None:
-			self.state_manager = scanner.scan()
 		self.start_time = time.time()
+		#self.files_to_run = set(map(get_path, self.state_manager.affected)).union(set(map(get_path, self.state_manager.bad)))
 		self.files_to_run = set(self.state_manager.affected).union(set(self.state_manager.bad))
 		if len(self.state_manager.affected):
-			info("changed files: %s" % (self.state_manager.affected,))
+			warning("changed files: %s" % (self.state_manager.affected,))
 		if len(self.state_manager.bad):
 			info("bad files: %s" % (self.state_manager.bad,))
+		if len(self.files_to_run):
+			warning("files to run: %s" % (self.files_to_run,))
+		self.output_queue.put(TestRun(self.start_time))
 
 	def options(self, parser, env=os.environ):
-		parser.add_option(
-			"--autorun", action="store_true",
-			default=env.get(self.env_opt, False), dest="autonose",
-			help="enable autonose plugin")
+		pass
 
 	def configure(self, options, conf=None):
-		if options.autonose:
-			self.enable()
-	
-	def enable(self):
 		self.enabled = True
-		self._setup()
+
+	def run_all(self):
+		self.wantFile = lambda filename: None
 
 	def wantFile(self, filename):
 		try:
 			rel_file = file_util.relative(filename)
 		except FileOutsideCurrentRoot:
-			log.warning("ignoring file outside current root: %s" % (filename,))
+			warning("ignoring file outside current root: %s" % (filename,))
 			return False
 		
-		debug("want file %s? %s" % (filename, "NO" if (rel_file not in self.files_to_run) else "if you like..."))
+		debug("want file %s? %s" % (rel_file, "NO" if (rel_file not in self.files_to_run) else "if you like..."))
+		debug("files to run are: %r" % (self.files_to_run,))
 		if rel_file not in self.files_to_run:
 			return False
 		return None # do nose's default behaviour
@@ -78,26 +108,15 @@ class Watcher(nose.plugins.Plugin):
 		if state != 'success':
 			log_lvl = info
 		log_lvl("test finished: %s with state: %s" % (test, state))
-		debug(repr(test.address()))
-		test_file = self._test_file(test)
-		filestamp = None
-		try:
-			filestamp = self.state_manager.state[self._test_file(test)]
-		except FileOutsideCurrentRoot, e:
-			log.warning('A test from outside the current root was run. The file is: %r' % (e.message))
-		except ValueError, e:
-			log.warning("test does not correspond to a known test file: %s" % (test_file,))
-
-		try:
-			if filestamp:
-				result = TestResult(state, test, err, self.start_time)
-				print repr(filestamp.info)
-				filestamp.info.add(result)
-				debug(result)
-		except StandardError:
-			import traceback
-			f = open('/tmp/exc', 'w')
-			traceback.print_exc(file=f)
+		self.output_queue.put(TestResult(
+			state=state,
+			id=test.id(),
+			name=str(test),
+			err=err,
+			run_start=self.start_time,
+			path=self._test_file(test),
+			outputs=self._capture_outputs(test)
+		))
 		self._current_test = None
 		
 	def addSuccess(self, test):
@@ -122,8 +141,19 @@ class Watcher(nose.plugins.Plugin):
 					(self._current_test, test))
 			self._addSkip(self._current_test)
 		debug('-'*80)
+
+	def _capture_outputs(self, test):
+		outputs = []
+		try:
+			outputs.append(('stdout', test.capturedOutput))
+		except AttributeError: pass
+
+		try:
+			outputs.append(('logging', test.capturedLogging))
+		except AttributeError: pass
+		return outputs
 	
 	def finalize(self, result=None):
-		debug(self.state_manager)
-		scanner.save(self.state_manager.state)
+		self.output_queue.put(Completion())
 	
+

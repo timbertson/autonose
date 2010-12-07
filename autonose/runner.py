@@ -7,12 +7,13 @@ import logging
 import logging.config
 import traceback
 import multiprocessing
+from multiprocessing import Queue
 from optparse import OptionParser
 
 import scanner
 import watcher
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('runner')
 debug = log.debug
 info = log.info
 
@@ -20,9 +21,19 @@ class NullHandler(logging.Handler):
 	def emit(self, record):
 		pass
 
+class MultiOutputQueue(object):
+	def __init__(self, *output_queues):
+		self.output_queues = output_queues
+	
+	def put(self, o):
+		[queue.put(o) for queue in self.output_queues]
+
 class Main(object):
 	def __init__(self):
 		self.configure()
+		self.test_result_ui_queue = Queue()
+		self.test_result_state_queue = Queue()
+		self.test_result_output_queue = MultiOutputQueue(self.test_result_ui_queue, self.test_result_state_queue)
 
 	def configure(self):
 		parser = OptionParser()
@@ -35,7 +46,7 @@ class Main(object):
 		# logging
 		parser.add_option('--debug', action="store_true", default=False, help='show debug output')
 		parser.add_option('--info', action="store_true", default=False, help='show more info about what files have changed')
-		parser.add_option('--log-config', action="store", default=None, help='use a logging config file')
+		parser.add_option('--log-only', action="store", default=None, help='restrict logging to the given module(s)')
 		
 		# UI
 		parser.add_option('--console', action="store_true", default=False, help='use the console interface (no GUI)')
@@ -65,8 +76,7 @@ class Main(object):
 					print repr(item)
 				return
 			self.run_with_state(state_manager)
-			if self.opts.once:
-				return
+			if self.opts.once: return
 			for point_in_time in state_manager.state_changes():
 				# this is a generator, it will yield forever
 				self.run_with_state(state_manager)
@@ -80,10 +90,6 @@ class Main(object):
 				self.ui.finalize()
 	
 	def init_logging(self):
-		if self.opts.log_config:
-			logging.config.fileConfig(self.opts.log_config)
-			return
-
 		format = '[%(levelname)s] %(name)s: %(message)s'
 		lvl = logging.WARNING
 		if self.opts.debug:
@@ -92,8 +98,19 @@ class Main(object):
 			lvl = logging.INFO
 		logging.basicConfig(level=lvl, format=format)
 
+		if self.opts.log_only:
+			for name in self.opts.log_only.split(","):
+				level = logging.DEBUG
+				if ":" in name:
+					name, level = name.split(":")
+					level = getattr(logging, level)
+				logging.getLogger(name).setLevel(level)
+				logging.info("set extended logging on logger %s" % (name,))
+		# since watcher runs in the nose process, it needs to be careful when logging...
+		watcher.actual_log_level = logging.getLogger('watcher').level
+
 	def init_nose_args(self):
-		self.nose_args = ['nosetests','--nologcapture', '--nocapture', '--exe', '--with-doctest']
+		self.nose_args = ['nosetests','--exe', '--with-doctest']
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 		self.nose_args.extend(self.opts.nose_args)
@@ -111,7 +128,7 @@ class Main(object):
 		try:
 			App = default_app()
 			from ui.shared import Launcher
-			self.ui = Launcher(self.nose_args, App)
+			self.ui = Launcher(self.test_result_ui_queue, App)
 		except StandardError:
 			import traceback
 			traceback.print_exc()
@@ -119,26 +136,35 @@ class Main(object):
 			print '-'*40
 			time.sleep(3)
 			return basic()
-		
+	
+	def save_state(self, state_manager):
+		state = state_manager.state
+		while True:
+			event = self.test_result_state_queue.get()
+			if isinstance(event, watcher.Completion):
+				scanner.save(state)
+				assert self.test_result_state_queue.empty()
+				break
+			else:
+				event.affect_state(state)
+
 	def run_with_state(self, state_manager):
 		info("running with %s affected and %s bad files... (%s files total)" % (len(state_manager.affected), len(state_manager.bad), len(state_manager.state)))
 		debug("state is: %r" % (state_manager.state,))
 		debug("args are: %r" % (self.nose_args,))
-		self.ui.begin_new_run(time.localtime())
-		watcher_plugin = watcher.Watcher(state_manager)
-		plugins = getattr(self.ui, 'plugins', [])
-		if not self.opts.all:
-			watcher_plugin.enable()
+		watcher_plugin = watcher.Watcher(state_manager, self.test_result_output_queue)
+		if self.opts.all:
+			watcher_plugin.run_all()
 
 		runner = multiprocessing.Process(
 			name="nosetests",
 			target=nose.run,
-			kwargs=dict(argv=self.nose_args, addplugins = plugins + [watcher_plugin])
+			kwargs=dict(argv=self.nose_args, addplugins = [watcher_plugin])
 		)
 		runner.daemon = True
 		runner.start()
 		runner.join()
-		scanner.save(state_manager.state)
+		self.save_state(state_manager)
 
 def main():
 	try:

@@ -1,5 +1,6 @@
-from data import Data
 from page import Page
+import logging
+log = logging.getLogger(__name__)
 
 class Main(object):
 	def __init__(self, delegate, queue):
@@ -11,8 +12,7 @@ class Main(object):
 	def run(self):
 		try:
 			while True:
-				node = self.queue.get()
-				self.page.process_node(node)
+				self.process(self.queue.get())
 				self.delegate.update(self.page)
 		except KeyboardInterrupt:
 			pass
@@ -22,4 +22,8 @@ class Main(object):
 			traceback.print_exc()
 		finally:
 			self.delegate.exit()
+	
+	def process(self, event):
+		log.debug("processing event: %r" % (event,))
+		event.affect_page(self.page)
 	

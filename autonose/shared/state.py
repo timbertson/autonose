@@ -41,6 +41,8 @@ class FileSystemState(object):
 		return self.known_paths.values()
 
 	def __setitem__(self, item, value):
+		assert isinstance(item, str)
+		assert isinstance(value, FileState)
 		self.known_paths[item] = value
 
 	def __getitem__(self, item):
@@ -149,7 +151,7 @@ class FileSystemStateManager(object):
 
 	@property
 	def bad(self):
-		return set(filter(lambda item: not item.ok(), self.state.values()))
+		return set([item.path for item in self.state.values() if not item.ok()])
 	
 	def __repr__(self):
 		def _repr(attr):
@@ -224,7 +226,7 @@ class FileSystemStateManager(object):
 		if file_state.stale():
 			info("changed: %s" % (rel_path,))
 			file_state.update()
-			self.changed.add(file_state)
+			self.changed.add(rel_path)
 		else:
 			debug("unchanged: %s" % (rel_path,))
 
