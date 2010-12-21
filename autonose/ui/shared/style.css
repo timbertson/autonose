@@ -120,7 +120,7 @@ pre, code {
 }
 
 .test.success h2{ color:#383; background:#efe; border-bottom: 1px solid #ddd;}
-.test.failure h2{ color:#833; background:#fee; }
+.test.fail    h2{ color:#833; background:#fee; }
 .test.error   h2{ color:#a73; background:#fffbe0; }
 
 .test .traceback .cause {

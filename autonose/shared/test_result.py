@@ -11,6 +11,8 @@ import traceback
 import itertools
 log = logging.getLogger(__name__)
 
+class ResultEvent(object): pass
+
 class TestResultSet(object):
 	"""
 	a set of TestResult objects that only keeps results from the most recent set
@@ -42,13 +44,13 @@ class TestResultSet(object):
 	def __str__(self):  return str(self.results)
 	
 	def __eq__(self, other):
-		return self.results == other.results
+		return type(self) == type(other) and self.results == other.results
 	def __ne__(self, other):
 		return not self == other
 	def __hash__(self):
 		hash(self.results)
 
-class TestResult(object):
+class TestResult(ResultEvent):
 	def __init__(self, state, id, name, path, err, run_start, outputs):
 		if state not in _all_states:
 			raise ValueError("state \"%s\" is invalid. Must be one of: %s" %
@@ -84,6 +86,7 @@ class TestResult(object):
 		return "<TestResult: %s>" % (str(self),)
 	
 	def __eq__(self, other):
+		if not type(self) == type(other): return False
 		get_self = lambda a: getattr(self, a)
 		get_other = lambda a: getattr(other, a)
 		return map(get_self, self.attrs) == map(get_other, self.attrs)

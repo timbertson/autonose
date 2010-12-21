@@ -1,5 +1,6 @@
 import sys
 import logging
+from shared.test_result import ResultEvent
 
 from page import Page
 
@@ -10,31 +11,27 @@ class Main(object):
 	The main-loop of all graphical App classes
 	(currently, gtkapp and cocoa-app)
 	"""
-	def __init__(self, runner_process, app_cls):
+	def __init__(self, proc, app_cls):
 		self.delegate = app_cls(self)
-		self.runner = runner_process
-		self.queue = runner_process.queue
+		self.proc = proc
 		self.page = Page()
-	
-	def terminate(self):
-		self.runner_process.terminate()
+		proc.receive[ResultEvent] = self.process
+		import watcher
+		proc.receive[watcher.TestRun] = self.process
+		import paragram as pg
+		@proc.receiver(pg.Any)
+		def handle(thing):
+			logging.error(type(thing))
+			logging.error(ResultEvent)
+			logging.error(isinstance(thing, ResultEvent))
+			logging.error(thing)
+			raise RuntimeError(type(thing))
 
-	def run(self):
-		try:
-			while True:
-				self.process(self.queue.get())
-				self.delegate.update(self.page)
-		except KeyboardInterrupt:
-			pass
-		except StandardError:
-			print "UI process input loop received exception:"
-			import traceback
-			traceback.print_exc()
-		finally:
-			self.delegate.exit()
-			sys.exit(1)
-	
 	def process(self, event):
 		log.debug("processing event: %r" % (event,))
 		event.affect_page(self.page)
+		self.delegate.update(self.page)
+	
+	def terminate(self):
+		self.proc.terminate()
 	

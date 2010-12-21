@@ -2,6 +2,8 @@ import cgi
 from datetime import datetime
 import os
 
+from autonose.shared.test_result import success, skip, error, fail
+
 def h(o):
 	return cgi.escape(str(o))
 
@@ -182,11 +184,11 @@ class Page(object):
 		self.summary.ran += 1
 		self.notice.set("last test: %s" % (test_id,))
 		
-		if status == 'failure':
+		if status == fail:
 			self.summary.failures += 1
-		elif status == 'error':
+		elif status == error:
 			self.summary.errors += 1
-		elif status == 'success':
+		elif status == success:
 			del self.tests[test_id]
 			return
 		else:

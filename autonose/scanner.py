@@ -53,7 +53,7 @@ def save(state):
 	pickle.dump(state, picklefile)
 	picklefile.close()
 	debug("saved dependencies file: %s" % (picklefile.name))
-	logging.info("saved dependencies are: %s" % (state))
+	logging.info("saved dependencies are: %r" % (state))
 
 def reset():
 	path = pickle_path()

@@ -51,7 +51,7 @@ class FileSystemState(object):
 	def __delitem__(self, item):
 		del self.known_paths[item]
 	
-	def __repr__(self): return repr(self.known_paths)
+	def __repr__(self): return "\n" + "\n".join(map(repr, self.values()))
 
 
 class FileSystemStateManager(object):

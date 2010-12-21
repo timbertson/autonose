@@ -23,9 +23,9 @@ debug = _log(logging.DEBUG)
 info = _log(logging.INFO)
 warning = _log(logging.WARN)
 
-from shared.test_result import TestResult, success, skip, error, fail
+from shared.test_result import TestResult, success, skip, error, fail, ResultEvent
 
-class TestRun(object):
+class TestRun(ResultEvent):
 	is_test=False
 	def __init__(self, time):
 		self.time = time
@@ -36,7 +36,7 @@ class TestRun(object):
 	def affect_page(self, page):
 		page.start_new_run()
 
-class Completion(object):
+class Completion(ResultEvent):
 	is_test=False
 
 	def affect_page(self, page):
@@ -54,9 +54,9 @@ class Watcher(nose.plugins.Plugin):
 	enabled = True
 	env_opt = 'AUTO_NOSE'
 	
-	def __init__(self, state_manager, output_queue):
+	def __init__(self, state_manager, output_proc):
 		self.state_manager = state_manager
-		self.output_queue = output_queue
+		self.output_proc = output_proc
 		self._setup()
 		super(self.__class__, self).__init__()
 	
@@ -70,7 +70,7 @@ class Watcher(nose.plugins.Plugin):
 			info("bad files: %s" % (self.state_manager.bad,))
 		if len(self.files_to_run):
 			warning("files to run: %s" % (self.files_to_run,))
-		self.output_queue.put(TestRun(self.start_time))
+		self.output_proc.send(TestRun(self.start_time))
 
 	def options(self, parser, env=os.environ):
 		pass
@@ -108,7 +108,7 @@ class Watcher(nose.plugins.Plugin):
 		if state != 'success':
 			log_lvl = info
 		log_lvl("test finished: %s with state: %s" % (test, state))
-		self.output_queue.put(TestResult(
+		self.output_proc.send(TestResult(
 			state=state,
 			id=test.id(),
 			name=str(test),
@@ -154,6 +154,6 @@ class Watcher(nose.plugins.Plugin):
 		return outputs
 	
 	def finalize(self, result=None):
-		self.output_queue.put(Completion())
+		self.output_proc.send(Completion())
 	
 
