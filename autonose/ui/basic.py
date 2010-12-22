@@ -3,14 +3,14 @@ import subprocess
 import sys
 import termstyle
 from autonose.watcher import TestRun
-from autonose.shared.test_result import ResultEvent
+import paragram as pg
 
 class Basic(object):
 	"""
 	The main event handler for the basic (console) runner.
 	"""
 	def __init__(self, proc):
-		proc.receive[ResultEvent] = self.process
+		proc.receive[pg.Any] = self.process
 
 	def process(self, event):
 		if isinstance(event, TestRun):

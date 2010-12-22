@@ -1,6 +1,6 @@
-import sys
 import logging
 from shared.test_result import ResultEvent
+from watcher import TestRun
 
 from page import Page
 
@@ -16,16 +16,7 @@ class Main(object):
 		self.proc = proc
 		self.page = Page()
 		proc.receive[ResultEvent] = self.process
-		import watcher
-		proc.receive[watcher.TestRun] = self.process
-		import paragram as pg
-		@proc.receiver(pg.Any)
-		def handle(thing):
-			logging.error(type(thing))
-			logging.error(ResultEvent)
-			logging.error(isinstance(thing, ResultEvent))
-			logging.error(thing)
-			raise RuntimeError(type(thing))
+		proc.receive[TestRun] = self.process
 
 	def process(self, event):
 		log.debug("processing event: %r" % (event,))

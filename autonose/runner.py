@@ -36,12 +36,6 @@ class EventRepeater(object):
 
 class Main(object):
 	def __init__(self):
-		self.configure()
-		#self.test_result_ui_queue = Queue()
-		#self.test_result_state_queue = Queue()
-		#self.test_result_output_queue = MultiOutputQueue(self.test_result_ui_queue, self.test_result_state_queue)
-
-	def configure(self):
 		parser = OptionParser()
 		# run control
 		parser.add_option('--clear', action='store_true', default=False, help='reset all dependency information')
@@ -131,7 +125,7 @@ class Main(object):
 		run_when_state_changes.send('start')
 
 	def init_logging(self):
-		format = '[%(levelname)s:%(processName)s] %(name)s: %(message)s'
+		format = '[%(levelname)s] %(name)s: %(message)s'
 		lvl = logging.WARNING
 		if self.opts.debug:
 			lvl = logging.DEBUG
@@ -199,8 +193,10 @@ class Main(object):
 		runner.wait()
 		if runner.error:
 			proc.terminate(runner.error)
+		pg.graph()
 
 def main():
+	pg.enable_graphs()
 	try:
 		Main().run()
 		sys.exit(0)
