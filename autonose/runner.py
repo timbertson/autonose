@@ -98,7 +98,7 @@ class Main(object):
 	def run_forever(self, state_manager):
 		state_saver = pg.main.spawn_link(
 			target=self.state_saver,
-			name='state saver',
+			name='state-saver',
 			args=(state_manager.state,),
 			kind=pg.ThreadProcess)
 
@@ -173,8 +173,7 @@ class Main(object):
 	
 	def state_saver(self, proc, state):
 		proc.receive[watcher.Completion] = lambda completion: scanner.save(state)
-		proc.receive[watcher.TestRun] = lambda event: event.affect_state(state)
-		proc.receive[ResultEvent] = lambda event: None
+		proc.receive[ResultEvent] = lambda event: event.affect_state(state)
 
 	def run_with_state(self, state_manager, proc):
 		#self.check_children()
@@ -193,10 +192,10 @@ class Main(object):
 		runner.wait()
 		if runner.error:
 			proc.terminate(runner.error)
-		pg.graph()
+		#pg.graph()
 
 def main():
-	pg.enable_graphs()
+	#pg.enable_graphs()
 	try:
 		Main().run()
 		sys.exit(0)
