@@ -65,8 +65,7 @@ class Main(object):
 		self.init_nose_args()
 		state_manager = scanner.load()
 		if self.opts.dump_state:
-			for item in state_manager.state.values():
-				print repr(item)
+			print repr(state_manager.state)
 			return
 		self.init_ui()
 		if self.opts.clear:
