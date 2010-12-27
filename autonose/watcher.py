@@ -112,6 +112,7 @@ class Watcher(nose.plugins.Plugin):
 			state=state,
 			id=test.id(),
 			name=str(test),
+			address=nose.util.test_address(test),
 			err=err,
 			run_start=self.start_time,
 			path=self._test_file(test),

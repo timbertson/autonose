@@ -9,11 +9,15 @@ import subprocess
 import gtk
 import webkit
 import gobject
+import logging
+log = logging.getLogger(__name__)
 
 from shared import urlparse
 
+
 class App(object):
 	script = __file__
+	URI_BASE = "file://" + (os.path.dirname(__file__))
 	def __init__(self, mainloop):
 		self.quitting = False
 		self.mainloop = mainloop
@@ -34,12 +38,17 @@ class App(object):
 		def _update(page=None):
 			if page is None:
 				page = self.mainLoop.page
-			self.browser.load_html_string(str(page), "file://" + (os.path.dirname(__file__)))
+			self.browser.load_html_string(str(page), self.URI_BASE)
 		self.do(_update, page)
 	
 	def _navigation_requested_cb(self, view, frame, networkRequest):
 		url = networkRequest.get_uri()
+		if url.startswith(self.URI_BASE + "#"):
+			test_id = url.split('#',1)[1]
+			self.mainloop.run_just(test_id)
+			return 1
 		opener = os.environ.get('EDITOR', 'gnome-open')
+		#log.info("navigation requested: %s" % (url,))
 		if not urlparse.editable_file(url):
 			return 0
 		path, line = urlparse.path_and_line_from(url)

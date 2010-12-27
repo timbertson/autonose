@@ -51,7 +51,7 @@ class TestResultSet(object):
 		hash(self.results)
 
 class TestResult(ResultEvent):
-	def __init__(self, state, id, name, path, err, run_start, outputs):
+	def __init__(self, state, id, name, address, path, err, run_start, outputs):
 		if state not in _all_states:
 			raise ValueError("state \"%s\" is invalid. Must be one of: %s" %
 				(state, ', '.join(sorted(_all_states))))
@@ -61,9 +61,10 @@ class TestResult(ResultEvent):
 		self.time = run_start
 		self.path = path
 		self.outputs = outputs
+		self.address = address
 		if err:
 			self.outputs.insert(0, ('traceback', self.extract_error(err)))
-		self.attrs = ['id','state','name','time','path']
+		self.attrs = ['id','state','name','time','path','address']
 	
 	def extract_error(self, err):
 		cls, instance, tb = err
@@ -98,8 +99,14 @@ class TestResult(ResultEvent):
 	
 	def affect_state(self, state):
 		state[self.path].test_results.add(self)
+	
+	@property
+	def runnable_address(self):
+		# no idea if this will work for all addresses,
+		# it seems like a roundabout way to get back to
+		# a particular test...
+		log.warn(repr(self.address))
+		return ":".join(map(str, self.address[1:]))
 
 	def affect_page(self, page):
-		#TODO: fill this in for reals
-
-		page.test_complete(test_id=self.id, status=self.state, outputs=self.outputs)
+		page.test_complete(self)

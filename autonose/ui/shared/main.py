@@ -1,6 +1,7 @@
 import logging
 from shared.test_result import ResultEvent
 from watcher import TestRun
+import paragram as pg
 
 from page import Page
 
@@ -15,8 +16,20 @@ class Main(object):
 		self.delegate = app_cls(self)
 		self.proc = proc
 		self.page = Page()
+		self.run_trigger = None
+
+		@proc.receive('use_runner', pg.Process)
+		def use_runner(msg, runner):
+			self.runner = runner
+
 		proc.receive[ResultEvent] = self.process
 		proc.receive[TestRun] = self.process
+
+	def run_just(self, test_id):
+		self.runner.send('focus_on', test_id)
+
+	def run_normally(self):
+		self.runner.send('focus_on', None)
 
 	def process(self, event):
 		log.debug("processing event: %r" % (event,))

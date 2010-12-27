@@ -103,10 +103,11 @@ class Tests(object):
 		return '\n'.join([str(test) for test in sorted_tests])
 		
 class Test(object):
-	def __init__(self, id, status, html):
-		self.id = id
-		self.name = self.get_name(id)
-		self.status = status
+	def __init__(self, test, html):
+		self.id = test.id
+		self.address = test.runnable_address
+		self.name = self.get_name(self.id)
+		self.status = test.state
 		self.html = html
 
 		self.old = False
@@ -127,10 +128,17 @@ class Test(object):
 	
 	def __str__(self):
 		return """
-			<div class="test %s %s">
-				<h2 class="flush">%s</h2>
-				%s
-			</div>""" % (self.status, 'old' if self.old else 'current', self.name, self.html)
+			<div class="test {status} {staleness}%s">
+				<a style="float:right;margin:5px;" href="#{address}"><sup>&#x25cf;</sup></a>
+				<a style="float:right;margin:5px;" href="#">&#x21A9;</a>
+				<h2 class="flush">{name}</h2>
+				{content}
+			</div>""".format(
+				status=self.status,
+				address=h(self.address),
+				staleness='old' if self.old else 'current',
+				name=self.name,
+				content=self.html)
 
 class Notice(object):
 	levels = ['debug','info','error']
@@ -180,30 +188,30 @@ class Page(object):
 		for listener in (self.status, self.summary, self.notice, self.tests):
 			getattr(listener, methodname)()
 
-	def test_complete(self, test_id, status, outputs):
+	def test_complete(self, test):
 		self.summary.ran += 1
-		self.notice.set("last test: %s" % (test_id,))
+		self.notice.set("last test: %s" % (test.id,))
 		
-		if status == fail:
+		if test.state == fail:
 			self.summary.failures += 1
-		elif status == error:
+		elif test.state == error:
 			self.summary.errors += 1
-		elif status == success:
-			del self.tests[test_id]
+		elif test.state == success:
+			del self.tests[test.id]
 			return
 		else:
-			raise ValueError("unknown status type: %s" % (status,))
+			raise ValueError("unknown status type: %s" % (test.state,))
 		
 		output = []
-		for output_source, content in outputs:
+		for output_source, content in test.outputs:
 			formatted = self._format(output_source, content)
 			output.append(formatted)
 		
 		output.append('</div>')
 		output = "\n".join(output)
 		
-		test = Test(test_id, status, output)
-		self.tests[test_id] = test
+		test = Test(test, output)
+		self.tests[test.id] = test
 	
 	def _format_traceback(self, value):
 		output = []

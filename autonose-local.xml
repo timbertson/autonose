@@ -1,7 +1,9 @@
-<?xml version="1.0" ?><?xml-stylesheet type='text/xsl' href='interface.xsl'?><interface uri="http://gfxmonk.net/dist/0install/autonose.xml" xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+<?xml version="1.0"?>
+<?xml-stylesheet type='text/xsl' href='interface.xsl'?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface" uri="http://gfxmonk.net/dist/0install/autonose.xml">
 	<name>autonose</name>
 	<summary>continuous test runner for python</summary>
-	<publish mode="featured" xmlns="http://gfxmonk.net/dist/0install"/>
+	<publish xmlns="http://gfxmonk.net/dist/0install" mode="featured"/>
 	<homepage>http://github.com/gfxmonk/autonose</homepage>
 	<description>
 	</description>
@@ -19,9 +21,6 @@
 		<requires interface="http://gfxmonk.net/dist/0install/python-termstyle.xml">
 			<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		</requires>
-		
-		
-		
 	</group>
 	<group main="autonose/runner.py">
 		<requires interface="http://gfxmonk.net/dist/0install/nose.xml">
@@ -37,6 +36,10 @@
 		<requires interface="http://gfxmonk.net/dist/0install/simple_notify.xml">
 			<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		</requires>
-		
-	<implementation id="." version="0.1.7"/></group>
-<feed-for interface="http://gfxmonk.net/dist/0install/autonose.xml"/></interface>
+		<requires interface="http://gfxmonk.net/dist/0install/paragram.xml">
+			<environment insert="" mode="prepend" name="PYTHONPATH"/>
+		</requires>
+		<implementation id="." version="0.1.7"/>
+	</group>
+	<feed-for interface="http://gfxmonk.net/dist/0install/autonose.xml"/>
+</interface>

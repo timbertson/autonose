@@ -11,6 +11,7 @@ class Basic(object):
 	"""
 	def __init__(self, proc):
 		proc.receive[pg.Any] = self.process
+		proc.receive[str, pg.Any] = lambda *a: None
 
 	def process(self, event):
 		if isinstance(event, TestRun):

@@ -16,7 +16,7 @@ from shared.test_result import ResultEvent
 log = logging.getLogger('runner')
 debug = log.debug
 info = log.info
-logging.getLogger('paragram').setLevel(logging.INFO)
+#logging.getLogger('paragram').setLevel(logging.INFO)
 
 class NullHandler(logging.Handler):
 	def emit(self, record):
@@ -90,6 +90,10 @@ class Main(object):
 			self.run_with_state(state_manager, proc)
 			state_monitor_proc.send('next', proc)
 
+		@proc.receive('focus_on', str)
+		def focus_on(msg, test_id):
+			self.run_with_state(state_manager, proc, nose_args=(test_id,) if test_id else ())
+
 		@proc.receive('start')
 		def start(msg):
 			state_monitor_proc.send('next', proc)
@@ -115,13 +119,14 @@ class Main(object):
 			args=(state_manager,),
 			kind=pg.ThreadProcess)
 
-		run_when_state_changes = pg.main.spawn_link(
+		run_triggerer = pg.main.spawn_link(
 			target=self.run_when_state_changes,
 			name='run-on-state-change',
 			args=(state_manager, monitor_state_changes,),
 			kind=pg.ThreadProcess)
 
-		run_when_state_changes.send('start')
+		self.ui.send('use_runner', run_triggerer)
+		run_triggerer.send('start')
 
 	def init_logging(self):
 		format = '[%(levelname)s] %(name)s: %(message)s'
@@ -148,6 +153,7 @@ class Main(object):
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 		self.nose_args.extend(self.opts.nose_args)
+		self.additional_nose_args = []
 
 	def init_ui(self):
 		self.ui = None
@@ -174,17 +180,19 @@ class Main(object):
 		proc.receive[watcher.Completion] = lambda completion: scanner.save(state)
 		proc.receive[ResultEvent] = lambda event: event.affect_state(state)
 
-	def run_with_state(self, state_manager, proc):
-		#self.check_children()
+	def run_with_state(self, state_manager, proc, nose_args=None):
+		if nose_args is not None:
+			self.additional_nose_args = list(nose_args)
 		info("running with %s affected and %s bad files... (%s files total)" % (len(state_manager.affected), len(state_manager.bad), len(state_manager.state)))
 		debug("state is: %r" % (state_manager.state,))
-		debug("args are: %r" % (self.nose_args,))
+		args = self.nose_args + self.additional_nose_args
+		debug("args are: %r" % (args,))
 		watcher_plugin = watcher.Watcher(state_manager, self.state_listener)
 		if self.opts.all:
 			watcher_plugin.run_all()
 
 		def run_tests(proc):
-			nose.run(argv=self.nose_args, addplugins=[watcher_plugin])
+			nose.run(argv=args, addplugins=[watcher_plugin])
 			proc.terminate()
 
 		runner = proc.spawn(target=run_tests, name="nose test runner")
