@@ -79,18 +79,18 @@ class Main(object):
 	def monitor_state_changes(self, proc, state_manager):
 		iterator = state_manager.state_changes()
 
-		@proc.receiver('next', pg.Process)
+		@proc.receive('next', pg.Process)
 		def next(msg, caller):
 			iterator.next()
 			caller.send('state_changed')
 
 	def run_when_state_changes(self, proc, state_manager, state_monitor_proc):
-		@proc.receiver('state_changed')
+		@proc.receive('state_changed')
 		def state_changed(msg):
 			self.run_with_state(state_manager, proc)
 			state_monitor_proc.send('next', proc)
 
-		@proc.receiver('start')
+		@proc.receive('start')
 		def start(msg):
 			state_monitor_proc.send('next', proc)
 
