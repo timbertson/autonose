@@ -29,11 +29,6 @@ class MultiOutputQueue(object):
 	def put(self, o):
 		[queue.put(o) for queue in self.output_queues]
 
-class EventRepeater(object):
-	def __init__(self, proc, *receivers):
-		self.receivers = receivers
-		proc.receive[pg.Any] = lambda *a: [receiver.send(*a) for receiver in receivers]
-
 class Main(object):
 	def __init__(self):
 		parser = OptionParser()
@@ -92,20 +87,19 @@ class Main(object):
 
 		@proc.receive('focus_on', str)
 		def focus_on(msg, test_id):
-			self.run_with_state(state_manager, proc, nose_args=(test_id,) if test_id else ())
+			self.test_id = test_id or None
+			self.run_with_state(state_manager, proc)
 
 		@proc.receive('start')
 		def start(msg):
 			state_monitor_proc.send('next', proc)
 
 	def run_forever(self, state_manager):
-		state_saver = pg.main.spawn_link(
+		self.state_listener = pg.main.spawn_link(
 			target=self.state_saver,
 			name='state-saver',
 			args=(state_manager.state,),
 			kind=pg.ThreadProcess)
-
-		self.state_listener = pg.main.spawn_link(target=EventRepeater, args=(state_saver, self.ui), name="state-event-repeater", kind=pg.ThreadProcess)
 
 		self.run_with_state(state_manager, pg.main)
 		if self.opts.once:
@@ -122,7 +116,7 @@ class Main(object):
 		run_triggerer = pg.main.spawn_link(
 			target=self.run_when_state_changes,
 			name='run-on-state-change',
-			args=(state_manager, monitor_state_changes,),
+			args=(state_manager, monitor_state_changes),
 			kind=pg.ThreadProcess)
 
 		self.ui.send('use_runner', run_triggerer)
@@ -153,7 +147,7 @@ class Main(object):
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 		self.nose_args.extend(self.opts.nose_args)
-		self.additional_nose_args = []
+		self.test_id = None
 
 	def init_ui(self):
 		self.ui = None
@@ -180,14 +174,19 @@ class Main(object):
 		proc.receive[watcher.Completion] = lambda completion: scanner.save(state)
 		proc.receive[ResultEvent] = lambda event: event.affect_state(state)
 
-	def run_with_state(self, state_manager, proc, nose_args=None):
-		if nose_args is not None:
-			self.additional_nose_args = list(nose_args)
+	def run_with_state(self, state_manager, proc):
 		info("running with %s affected and %s bad files... (%s files total)" % (len(state_manager.affected), len(state_manager.bad), len(state_manager.state)))
 		debug("state is: %r" % (state_manager.state,))
-		args = self.nose_args + self.additional_nose_args
+		args = self.nose_args[:]
+		if self.test_id:
+			args.append(self.test_id)
+			# when only running a single test, we can't reliably update the state records
+			listeners = [self.ui]
+		else:
+			listeners = [self.ui, self.state_listener]
+
 		debug("args are: %r" % (args,))
-		watcher_plugin = watcher.Watcher(state_manager, self.state_listener)
+		watcher_plugin = watcher.Watcher(state_manager, *listeners)
 		if self.opts.all:
 			watcher_plugin.run_all()
 

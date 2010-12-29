@@ -24,7 +24,7 @@ class Summary(object):
 	def finish(self): pass
 
 	def __str__(self):
-		html = 'ran <span class="tests">%s tests</span>' % (self.ran,)
+		html = '<a href="#">#</a> ran <span class="tests">%s tests</span>' % (self.ran,)
 		if self.failures or self.errors:
 			html += ' ('
 			if self.failures:
@@ -129,8 +129,7 @@ class Test(object):
 	def __str__(self):
 		return """
 			<div class="test {status} {staleness}%s">
-				<a style="float:right;margin:5px;" href="#{address}"><sup>&#x25cf;</sup></a>
-				<a style="float:right;margin:5px;" href="#">&#x21A9;</a>
+				<a style="float:left;margin:7px;opacity:0.4;color:black;" href="#{address}">&#x25cf;</a>
 				<h2 class="flush">{name}</h2>
 				{content}
 			</div>""".format(

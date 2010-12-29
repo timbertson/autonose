@@ -54,15 +54,17 @@ class Watcher(nose.plugins.Plugin):
 	enabled = True
 	env_opt = 'AUTO_NOSE'
 	
-	def __init__(self, state_manager, output_proc):
+	def __init__(self, state_manager, *results_listeners):
 		self.state_manager = state_manager
-		self.output_proc = output_proc
+		self.results_listeners = results_listeners
 		self._setup()
 		super(self.__class__, self).__init__()
 	
+	def _send(self, *msg):
+		[listener.send(*msg) for listener in self.results_listeners]
+	
 	def _setup(self):
 		self.start_time = time.time()
-		#self.files_to_run = set(map(get_path, self.state_manager.affected)).union(set(map(get_path, self.state_manager.bad)))
 		self.files_to_run = set(self.state_manager.affected).union(set(self.state_manager.bad))
 		if len(self.state_manager.affected):
 			warning("changed files: %s" % (self.state_manager.affected,))
@@ -70,7 +72,7 @@ class Watcher(nose.plugins.Plugin):
 			info("bad files: %s" % (self.state_manager.bad,))
 		if len(self.files_to_run):
 			warning("files to run: %s" % (self.files_to_run,))
-		self.output_proc.send(TestRun(self.start_time))
+		self._send(TestRun(self.start_time))
 
 	def options(self, parser, env=os.environ):
 		pass
@@ -108,7 +110,7 @@ class Watcher(nose.plugins.Plugin):
 		if state != 'success':
 			log_lvl = info
 		log_lvl("test finished: %s with state: %s" % (test, state))
-		self.output_proc.send(TestResult(
+		self._send(TestResult(
 			state=state,
 			id=test.id(),
 			name=str(test),
@@ -155,6 +157,6 @@ class Watcher(nose.plugins.Plugin):
 		return outputs
 	
 	def finalize(self, result=None):
-		self.output_proc.send(Completion())
+		self._send(Completion())
 	
 

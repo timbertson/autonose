@@ -24,7 +24,8 @@ class FileSystemState(object):
 	def __init__(self, version=VERSION, known_paths=None):
 		self.version = version
 		self.known_paths = known_paths or {}
-		self.lock = threading.Lock()
+		self._zombies = {}
+		self.lock = threading.RLock()
 
 	def check(self):
 		assert self.version == VERSION
@@ -43,6 +44,7 @@ class FileSystemState(object):
 
 	def __setitem__(self, item, value):
 		with self.lock:
+			log.debug("ALTERING path: %s" % (item,))
 			assert isinstance(item, str)
 			assert isinstance(value, FileState)
 			self.known_paths[item] = value
@@ -53,9 +55,24 @@ class FileSystemState(object):
 	def __delitem__(self, item):
 		with self.lock:
 			log.debug("DELETING known path: %s" % (item,))
+			self._zombies[item] = self.known_paths[item]
 			del self.known_paths[item]
 	
+	def resurrect(self, item):
+		with self.lock:
+			try:
+				self.known_paths[item] = self._zombies[item]
+				del self._zombies[item]
+			except KeyError:
+				return False
+			return True
+
+	
 	def __repr__(self): return "\n" + "\n".join(map(repr, self.values()))
+	def copy(self):
+		cls, args = self.__reduce__()
+		return cls(*args)
+
 	def __reduce__(self):
 		return (FileSystemState, (self.version, self.known_paths.copy()))
 
@@ -113,7 +130,7 @@ class FileSystemStateManager(object):
 				# suck up the rest of the events while we're at it
 				try:
 					while True:
-						new_events.append(self._event_queue.get(False))
+						new_events.append(self._event_queue.get(False, timeout=0.1))
 				except queue.Empty: pass
 				self._process_changes(new_events)
 		except:
@@ -216,10 +233,11 @@ class FileSystemStateManager(object):
 			return
 		self._seen.add(rel_path)
 
-		if rel_path in self.state:
-			self._check_for_change(rel_path)
-		else:
-			self._add(rel_path)
+		with self.state.lock:
+			if rel_path in self.state or self.state.resurrect(rel_path):
+				self._check_for_change(rel_path)
+			else:
+				self._add(rel_path)
 	
 	def _add(self, rel_path):
 		file_state = FileState(rel_path)
