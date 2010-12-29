@@ -51,4 +51,7 @@ class FileStateTest(TestCase):
 		pickled = pickle.dumps(state)
 		loaded_state = pickle.loads(pickled)
 		self.assertEqual(repr(state), repr(loaded_state) + "___")
+	
+	def test_should_remember_deleted_files_and_resurrect_them_if_they_reappear(self):
+		pass
 

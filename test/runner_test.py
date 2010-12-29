@@ -22,4 +22,7 @@ class RunnerTest(TestCase):
 	
 	def test_should_sleep__sleep_time__between_scans(self):
 		pass
+	
+	def test_should_not_include_state_receiver_when_running_in_focussed_mode(self):
+		pass
 
