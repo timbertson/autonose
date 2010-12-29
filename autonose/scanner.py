@@ -57,5 +57,5 @@ def save(state):
 
 def reset():
 	path = pickle_path()
-	if os.path.isfile(path):
+	if os.path.exists(path):
 		os.remove(path)

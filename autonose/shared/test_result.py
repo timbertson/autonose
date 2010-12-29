@@ -105,7 +105,6 @@ class TestResult(ResultEvent):
 		# no idea if this will work for all addresses,
 		# it seems like a roundabout way to get back to
 		# a particular test...
-		log.warn(repr(self.address))
 		return ":".join(map(str, self.address[1:]))
 
 	def affect_page(self, page):

@@ -35,6 +35,12 @@
 		</implementation>
 	</group>
 	<group main="autonose/runner.py">
+		<command name="test" path=".">
+			<runner interface="http://gfxmonk.net/dist/0install/nose.xml"/>
+		</command>
+		<requires interface="http://gfxmonk.net/dist/0install/paragram.xml">
+			<environment insert="" mode="prepend" name="PYTHONPATH"/>
+		</requires>
 		<requires interface="http://gfxmonk.net/dist/0install/nose.xml">
 			<environment insert="" mode="prepend" name="PYTHONPATH"/>
 			<version not-before="0.11"/>

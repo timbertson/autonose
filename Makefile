@@ -7,3 +7,7 @@ tasks:
 clean:
 	find . -iname '*.pyc' -or -iname '.*.pickle' | xargs rm
 
+test:
+	0test autonose-local.xml
+
+.PHONY: test

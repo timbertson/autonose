@@ -16,7 +16,7 @@ from shared.test_result import ResultEvent
 log = logging.getLogger('runner')
 debug = log.debug
 info = log.info
-#logging.getLogger('paragram').setLevel(logging.INFO)
+logging.getLogger('paragram').setLevel(logging.WARN)
 
 class NullHandler(logging.Handler):
 	def emit(self, record):
@@ -149,7 +149,7 @@ class Main(object):
 		watcher.actual_log_level = logging.getLogger('watcher').level
 
 	def init_nose_args(self):
-		self.nose_args = ['nosetests','--exe', '--with-doctest']
+		self.nose_args = ['nosetests','--exe']
 		if self.opts.config is not None:
 			self.nose_args.append('--config=%s' % (self.opts.config))
 		self.nose_args.extend(self.opts.nose_args)

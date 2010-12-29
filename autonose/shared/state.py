@@ -21,9 +21,10 @@ def union(*sets):
 VERSION = 1
 
 class FileSystemState(object):
-	def __init__(self, version=VERSION):
+	def __init__(self, version=VERSION, known_paths=None):
 		self.version = version
-		self.known_paths = {}
+		self.known_paths = known_paths or {}
+		self.lock = threading.Lock()
 
 	def check(self):
 		assert self.version == VERSION
@@ -41,17 +42,22 @@ class FileSystemState(object):
 		return self.known_paths.values()
 
 	def __setitem__(self, item, value):
-		assert isinstance(item, str)
-		assert isinstance(value, FileState)
-		self.known_paths[item] = value
+		with self.lock:
+			assert isinstance(item, str)
+			assert isinstance(value, FileState)
+			self.known_paths[item] = value
 
 	def __getitem__(self, item):
 		return self.known_paths[item]
 
 	def __delitem__(self, item):
-		del self.known_paths[item]
+		with self.lock:
+			log.debug("DELETING known path: %s" % (item,))
+			del self.known_paths[item]
 	
 	def __repr__(self): return "\n" + "\n".join(map(repr, self.values()))
+	def __reduce__(self):
+		return (FileSystemState, (self.version, self.known_paths.copy()))
 
 
 class FileSystemStateManager(object):
