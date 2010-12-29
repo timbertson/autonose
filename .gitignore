@@ -8,3 +8,4 @@ dist
 *.swp
 .*
 0inst
+autonose-local.xml
