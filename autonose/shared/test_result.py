@@ -66,9 +66,24 @@ class TestResult(ResultEvent):
 			self.outputs.insert(0, ('traceback', self.extract_error(err)))
 		self.attrs = ['id','state','name','time','path','address']
 	
+	def __filter_unittest_from_traceback(self, tb):
+		trace = []
+
+		while tb:
+			frame = tb.tb_frame
+			tb = tb.tb_next
+			if '__unittest' in frame.f_globals:
+				# this is the magical flag that prevents unittest internal
+				# code from junking up the stacktrace
+				continue
+			trace.extend(traceback.extract_stack(frame, 1))
+		return trace
+
 	def extract_error(self, err):
 		cls, instance, tb = err
 		trace = traceback.extract_tb(tb)
+		trace = self.__filter_unittest_from_traceback(tb)
+
 		message = str(instance)
 		marker = "begin captured"
 		if marker in message:
