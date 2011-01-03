@@ -31,7 +31,7 @@ class FileSystemState(object):
 		assert self.version == VERSION
 	
 	def __iter__(self):
-		return iter(self.known_paths.keys())
+		return iter(list(self.known_paths.keys()))
 
 	def __len__(self):
 		return len(self.known_paths)
@@ -50,7 +50,8 @@ class FileSystemState(object):
 			self.known_paths[item] = value
 
 	def __getitem__(self, item):
-		return self.known_paths[item]
+		with self.lock:
+			return self.known_paths[item]
 
 	def __delitem__(self, item):
 		with self.lock:
@@ -114,7 +115,7 @@ class FileSystemStateManager(object):
 		self._process_events_thread.daemon = True
 		self._process_events_thread.start()
 		import simple_notify
-		simple_notify.watch(base, callback=self._event_queue.put)
+		simple_notify.watch(base, callback=self._event_queue.put, latency=0.1)
 
 		while True:
 			self.anything_changed.wait()
