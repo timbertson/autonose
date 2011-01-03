@@ -203,12 +203,13 @@ class FileSystemStateManager(object):
 					state_changed = True
 		if len(self.affected) > 0:
 			info("all affected files:    \n%s" % ("\n".join(["  %s" % (item,) for item in sorted(self.affected)]),))
-		else:
-			debug("propagation complete - no affected files")
 
 	def _remove(self, path):
 		info("removed: %s" % path)
-		del self.state[path]
+		try:
+			del self.state[path]
+		except KeyError:
+			pass
 		self.removed.add(path)
 	
 	def _walk(self, dir):
