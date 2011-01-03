@@ -78,6 +78,16 @@ class FileSystemState(object):
 		return (FileSystemState, (self.version, self.known_paths.copy()))
 
 
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+from watchdog import events
+class QueueHandler(FileSystemEventHandler):
+	def __init__(self):
+		self.queue = queue.Queue()
+	def dispatch(self, event):
+		self.queue.put(event)
+
+
 class FileSystemStateManager(object):
 	def __init__(self, state = None):
 		if state is None:
@@ -85,7 +95,7 @@ class FileSystemStateManager(object):
 		self.state = state
 		self.anything_changed = threading.Event()
 		self.lock = threading.Lock()
-		self._event_queue = queue.Queue()
+		self._event_handler = QueueHandler()
 		self.reset()
 	
 	def reset(self):
@@ -110,12 +120,16 @@ class FileSystemStateManager(object):
 	def reset_scan(self):
 		self._seen = set()
 	
+	def _init_filesystem_watch(self):
+		observer = Observer()
+		observer.schedule(self._event_handler, path='.', recursive=True)
+		observer.start()
+
 	def state_changes(self):
 		self._process_events_thread = threading.Thread(target=self.process_events_forever, name="FileSystemState inotify event handler")
 		self._process_events_thread.daemon = True
 		self._process_events_thread.start()
-		import simple_notify
-		simple_notify.watch(base, callback=self._event_queue.put, latency=0.1)
+		self._init_filesystem_watch()
 
 		while True:
 			self.anything_changed.wait()
@@ -127,11 +141,11 @@ class FileSystemStateManager(object):
 		try:
 			while(True):
 				new_events = []
-				new_events.append(self._event_queue.get())
+				new_events.append(self._event_handler.queue.get())
 				# suck up the rest of the events while we're at it
 				try:
 					while True:
-						new_events.append(self._event_queue.get(False, timeout=0.1))
+						new_events.append(self._event_handler.queue.get(False, timeout=0.1))
 				except queue.Empty: pass
 				self._process_changes(new_events)
 		except:
@@ -148,27 +162,39 @@ class FileSystemStateManager(object):
 			if self._all_differences():
 				self.anything_changed.set()
 
-	def _process_change(self, change):
-		try:
-			path = file_util.relative(change.path)
-		except file_util.FileOutsideCurrentRoot:
-			info("skipped: %s" % (change.path))
-			return
-		path = change.path
-		self.reset_scan()
-		if change.is_dir:
-			if change.exists:
-				self._walk(path)
-			else:
-				self._remove_dir(path)
+	def _get_existing_and_nonexisting_paths(self, change):
+		existing = []
+		nonexisting = []
+		if change.event_type == events.EVENT_TYPE_MOVED:
+			existing.append(change.dest_path)
+			nonexisting.append(change.src_path)
+		elif change.event_type in (events.EVENT_TYPE_CREATED, events.EVENT_TYPE_MODIFIED):
+			existing.append(change.src_path)
+		elif change.event_type == events.EVENT_TYPE_DELETED:
+			nonexisting.append(change.src_path)
 		else:
-			if not file_util.is_pyfile(path):
-				return
+			raise AssertionError("unknown event type: %s" % (change.event_type,))
+		return existing, nonexisting
 
-			if change.exists:
-				self._inspect(path)
-			else:
-				self._remove(path)
+	def _process_change(self, change):
+		existing, nonexisting = self._get_existing_and_nonexisting_paths(change)
+
+		existing = filter(None, map(lambda path: file_util.relative(path, None), existing))
+		nonexisting = filter(None, map(lambda path: file_util.relative(path, None), nonexisting))
+
+		if len(existing + nonexisting) == 0:
+			info("skipped: %s" % (change.src_path))
+			return
+
+		self.reset_scan()
+		if change.is_directory:
+			map(self._walk, existing)
+			map(self._remove_dir, nonexisting)
+		else:
+			existing = filter(file_util.is_pyfile, existing)
+			nonexisting = filter(file_util.is_pyfile, nonexisting)
+			map(self._inspect, existing)
+			map(self._remove, nonexisting)
 
 	def _remove_dir(self, path):
 		[self._remove(file) for file in self.state if file.startswith(os.path.join(path, ""))]
