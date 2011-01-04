@@ -3,25 +3,42 @@
 Autonose is an autotest-like tool for python, using the excellent nosetest
 library.
 
-autotest tracks filesystem changes and automatically re-run
-any changed tests or dependencies whenever a file is added, removed or
-updated. A file counts as changed if it has iself been modified, or if any
-file it `import`s has changed.
+Features:
 
-## Using it:
+ - Re-run tests instantly when you save a file
+ - Re-runs only tests that have failed or depend on changed files
+ - GTK GUI (console fallback for other platforms or by passing in --console)
+ - focus mode: keep running a single test (GUI only)
 
-	$ easy_install autonose
-	autonose
+To activate focus mode, click the large grey circle next to the test result.
+To go back to normal mode, click the "#" in the status bar (next to the
+number of tests run).
 
-It's really that simple. try `autonose --help` for configuration options.
+Note: on a Mac, to get immediate filesystem notification you may need to install
+watchdog using `easy_install`, as it needs to compile a native extension which
+isn't included in the 0install package.
 
-Autonose currently has a native GUI for OSX and GTK. If neither of those
-are available to you, you can instead run the console version (with the
-`--console` option).
+## Installation:
 
-.. but the real magic happens when you have autonose running *while* modifying
-your tests / code.
+The officially supported installation mechanism is zero install. You will
+need the zeroinstall-injector package (from apt, yum, macports, etc.) or
+[your platform's equivalent](http://zero-install.sourceforge.net/injector.html).
 
+To launch it, simply run:
+
+	$ 0launch http://gfxmonk.net/dist/0install/autonose.xml
+
+You can also use 0alias to make a short name for it:
+
+	$ 0alias http://gfxmonk.net/dist/0install/autonose.xml autonose
+	$ autonose
+
+If you have modified the code, you will want to create a local feed to run:
+
+	$ 0launch http://gfxmonk.net/dist/0install/0local.xml autonose.xml
+	$ 0launch autonose-local.xml
+
+See http://gfxmonk.net/dist/0install/autonose.xml for further deatils.
 
 ## Advanced use:
 
@@ -33,15 +50,10 @@ However, you can pass any options you want to nose by prefixing them with `-x`,
 or by using `--config=nose.cfg` if you have a config file.
 (e.g. to turn on doctest, you should pass `-x--with-doctest` to autonose)
 
-## Current Status
+## Notes:
 
 Autotest does not (currently):
 
  - understand dynamic imports (use of `__import__`)
  - track any file types other than `.py`
- - detect filesystem changes instantly (inotify-style). This is not an
-   issue for small codebases, but could be for larger ones.
-
-All of these points are at various stages of being worked on; see the github
-issues page for the status on these (and many more!) enhancements.
 
