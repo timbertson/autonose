@@ -1,9 +1,9 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <?xml-stylesheet type='text/xsl' href='interface.xsl'?>
-<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface" uri="http://gfxmonk.net/dist/0install/autonose.xml">
+<interface uri="http://gfxmonk.net/dist/0install/autonose.xml" xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
 	<name>autonose</name>
 	<summary>continuous test runner for python</summary>
-	<publish xmlns="http://gfxmonk.net/dist/0install" mode="featured"/>
+	<publish mode="featured" xmlns="http://gfxmonk.net/dist/0install"/>
 	<homepage>http://github.com/gfxmonk/autonose</homepage>
 	<description>
 # Autonose
@@ -19,7 +19,7 @@ Features:
  - focus mode: keep running a single test (GUI only)
 
 To activate focus mode, click the large grey circle next to the test result.
-To go back to normal mode, click the "#" in the status bar (next to the
+To go back to normal mode, click the &quot;#&quot; in the status bar (next to the
 number of tests run).
 
 Note: on a Mac, to get immediate filesystem notification you may need to install
@@ -77,7 +77,7 @@ Autotest does not (currently):
 				<h:li>GTK GUI (console fallback for other platforms or by passing in --console)</h:li>
 				<h:li>focus mode: keep running a single test (GUI only)</h:li>
 			</h:ul>
-			<h:p>To activate focus mode, click the large grey circle next to the test result. To go back to normal mode, click the "#" in the status bar (next to the number of tests run).</h:p>
+			<h:p>To activate focus mode, click the large grey circle next to the test result. To go back to normal mode, click the &quot;#&quot; in the status bar (next to the number of tests run).</h:p>
 			<h:p>Note: on a Mac, to get immediate filesystem notification you may need to install watchdog using <h:code>easy_install</h:code>, as it needs to compile a native extension which isn't included in the 0install package.</h:p>
 			<h:div id="installation:">
 				<h:h2>Installation:</h:h2>
@@ -157,7 +157,10 @@ $ 0launch autonose-local.xml
 		<requires interface="http://gfxmonk.net/dist/0install/watchdog.xml">
 			<environment insert="" mode="append" name="PYTHONPATH"/>
 		</requires>
-		<implementation id="." version="0.1.6">
-		</implementation>
+		<implementation id="sha1new=c2404c7a5fd028915965fae7ebc8286cab0f8ea1" released="2011-01-04" version="0.1.6">
+		
+    <manifest-digest sha256="79713238960d6bed158be4509ee047f8b3733ab98e438b40d06fb2de724586a8"/>
+    <archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.1.6.tgz" size="61138"/>
+  </implementation>
 	</group>
 </interface>
