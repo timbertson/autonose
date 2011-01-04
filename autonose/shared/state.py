@@ -49,6 +49,14 @@ class FileSystemState(object):
 			assert isinstance(value, FileState)
 			self.known_paths[item] = value
 
+	def get_or_create(self, path):
+		with self.lock:
+			try:
+				return self[path]
+			except KeyError:
+				self[path] = FileState(path)
+				return self[path]
+
 	def __getitem__(self, item):
 		with self.lock:
 			return self.known_paths[item]
@@ -262,10 +270,9 @@ class FileSystemStateManager(object):
 				self._add(rel_path)
 	
 	def _add(self, rel_path):
-		file_state = FileState(rel_path)
 		info("added: %s" % (rel_path))
 		self.added.add(rel_path)
-		self.state[rel_path] = file_state
+		self.state.get_or_create(rel_path)
 	
 	def _check_for_change(self, rel_path):
 		file_state = self.state[rel_path]

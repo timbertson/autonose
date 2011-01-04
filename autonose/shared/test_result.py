@@ -113,7 +113,7 @@ class TestResult(ResultEvent):
 		hash(self.state, self.name, self.time, self.err)
 	
 	def affect_state(self, state):
-		state[self.path].test_results.add(self)
+		state.get_or_create(self.path).test_results.add(self)
 	
 	@property
 	def runnable_address(self):
