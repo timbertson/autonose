@@ -187,17 +187,11 @@ class FileSystemStateManager(object):
 			return
 
 		self.reset_scan()
-		if change.is_directory:
-			map(self._walk, existing)
-			map(self._remove_dir, nonexisting)
-		else:
+		if not change.is_directory:
 			existing = filter(file_util.is_pyfile, existing)
 			nonexisting = filter(file_util.is_pyfile, nonexisting)
 			map(self._inspect, existing)
 			map(self._remove, nonexisting)
-
-	def _remove_dir(self, path):
-		[self._remove(file) for file in self.state if file.startswith(os.path.join(path, ""))]
 
 	@property
 	def bad(self):

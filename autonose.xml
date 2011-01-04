@@ -51,7 +51,7 @@
 		<requires interface="http://gfxmonk.net/dist/0install/python-termstyle.xml">
 			<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		</requires>
-		<requires interface="http://gfxmonk.net/dist/0install/simple_notify.xml">
+		<requires interface="http://gfxmonk.net/dist/0install/watchdog.xml">
 			<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		</requires>
 		<implementation id="." version="0.1.6">
