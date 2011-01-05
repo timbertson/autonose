@@ -162,7 +162,7 @@ class Main(object):
 		try:
 			App = default_app()
 			from ui.shared import Main as UIMain
-			self.ui = pg.main.spawn_link(target=UIMain, args=(App,), name="UI")
+			self.ui = pg.main.spawn_link(target=UIMain, args=(App,), name="UI", kind=pg.OSProcess)
 		except StandardError:
 			traceback.print_exc()
 			print "UI load failed - falling back to basic console"
@@ -194,7 +194,7 @@ class Main(object):
 			nose.run(argv=args, addplugins=[watcher_plugin])
 			proc.terminate()
 
-		runner = proc.spawn(target=run_tests, name="nose test runner")
+		runner = proc.spawn(target=run_tests, name="nose test runner", kind=pg.OSProcess)
 		runner.wait()
 		if runner.error:
 			proc.terminate(runner.error)
