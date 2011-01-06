@@ -14,10 +14,10 @@ library.
 
 Features:
 
- - Re-run tests instantly when you save a file
- - Re-runs only tests that have failed or depend on changed files
- - GTK GUI (console fallback for other platforms or by passing in --console)
- - focus mode: keep running a single test (GUI only)
+- Re-run tests instantly when you save a file
+- Re-runs only tests that have failed or depend on changed files
+- GTK GUI (console fallback for other platforms or by passing in --console)
+- focus mode: keep running a single test (GUI only)
 
 To activate focus mode, click the large grey circle next to the test result.
 To go back to normal mode, click the &quot;#&quot; in the status bar (next to the
@@ -50,7 +50,7 @@ If you have modified the code, you will want to create a local feed to run::
 
 See http://gfxmonk.net/dist/0install/autonose.xml for further deatils.
 
-If you really _must_ use pypi, you can ``pip install autonose``.
+If you really *must* use pypi, you can ``pip install autonose``.
 
 Advanced use:
 -------------
@@ -68,58 +68,56 @@ Notes:
 
 Autotest does not (currently):
 
- - understand dynamic imports (use of ``__import__``)
- - track any file types other than ``.py``
+- understand dynamic imports (use of ``__import__``)
+- track any file types other than ``.py``
 
 	</description>
 	<rich-description xmlns="http://gfxmonk.net/dist/0install" xmlns:h="http://www.w3.org/1999/xhtml">
-		<h:div id="autonose">
-			<h:h1>Autonose</h:h1>
-			<h:p>Autonose is an autotest-like tool for python, using the excellent nosetest library.</h:p>
-			<h:p>Features:</h:p>
-			<h:blockquote>
-				<h:ul>
-					<h:li>Re-run tests instantly when you save a file</h:li>
-					<h:li>Re-runs only tests that have failed or depend on changed files</h:li>
-					<h:li>GTK GUI (console fallback for other platforms or by passing in --console)</h:li>
-					<h:li>focus mode: keep running a single test (GUI only)</h:li>
-				</h:ul>
-			</h:blockquote>
-			<h:p>To activate focus mode, click the large grey circle next to the test result. To go back to normal mode, click the &quot;#&quot; in the status bar (next to the number of tests run).</h:p>
-			<h:p>Note: on a Mac, to get immediate filesystem notification you may need to install watchdog using <h:code>easy_install</h:code>, as it needs to compile a native extension which isn't included in the 0install package.</h:p>
-			<h:div id="installation:">
-				<h:h2>Installation:</h:h2>
-				<h:p>The officially supported installation mechanism is zero install. You will need the zeroinstall-injector package (from apt, yum, macports, etc.) or <h:a href="http://zero-install.sourceforge.net/injector.html">your platform's equivalent</h:a>.</h:p>
-				<h:p>To launch it, simply run:</h:p>
-				<h:pre><h:code>$ 0launch http://gfxmonk.net/dist/0install/autonose.xml
-</h:code></h:pre>
-				<h:p>You can also use 0alias to make a short name for it:</h:p>
-				<h:pre><h:code>$ 0alias http://gfxmonk.net/dist/0install/autonose.xml autonose
+		<div xmlns="http://www.w3.org/1999/xhtml">
+			<div id="autonose">
+				<h1>Autonose</h1>
+				<p>Autonose is an autotest-like tool for python, using the excellent nosetest library.</p>
+				<p>Features:</p>
+				<ul>
+					<li>Re-run tests instantly when you save a file</li>
+					<li>Re-runs only tests that have failed or depend on changed files</li>
+					<li>GTK GUI (console fallback for other platforms or by passing in --console)</li>
+					<li>focus mode: keep running a single test (GUI only)</li>
+				</ul>
+				<p>To activate focus mode, click the large grey circle next to the test result. To go back to normal mode, click the &quot;#&quot; in the status bar (next to the number of tests run).</p>
+				<p>Note: on a Mac, to get immediate filesystem notification you may need to install watchdog using <code>easy_install</code>, as it needs to compile a native extension which isn't included in the 0install package.</p>
+				<div id="installation:">
+					<h2>Installation:</h2>
+					<p>The officially supported installation mechanism is zero install. You will need the zeroinstall-injector package (from apt, yum, macports, etc.) or <a href="http://zero-install.sourceforge.net/injector.html">your platform's equivalent</a>.</p>
+					<p>To launch it, simply run:</p>
+					<pre><code>$ 0launch http://gfxmonk.net/dist/0install/autonose.xml
+</code></pre>
+					<p>You can also use 0alias to make a short name for it:</p>
+					<pre><code>$ 0alias http://gfxmonk.net/dist/0install/autonose.xml autonose
 $ autonose
-</h:code></h:pre>
-				<h:p>If you have modified the code, you will want to create a local feed to run:</h:p>
-				<h:pre><h:code>$ 0launch http://gfxmonk.net/dist/0install/0local.xml autonose.xml
+</code></pre>
+					<p>If you have modified the code, you will want to create a local feed to run:</p>
+					<pre><code>$ 0launch http://gfxmonk.net/dist/0install/0local.xml autonose.xml
 $ 0launch autonose-local.xml
-</h:code></h:pre>
-				<h:p>See <h:a href="http://gfxmonk.net/dist/0install/autonose.xml">http://gfxmonk.net/dist/0install/autonose.xml</h:a> for further deatils.</h:p>
-				<h:p>If you really _must_ use pypi, you can <h:code>pip install autonose</h:code>.</h:p>
-			</h:div>
-			<h:div id="advanced-use:">
-				<h:h2>Advanced use:</h:h2>
-				<h:p>nosetests has a lot of options and plugins. autonose tries to work as best it can with them, but be warned that some plugins will interfere with autonose (particularly any that do their own output or manage test results).</h:p>
-				<h:p>However, you can pass any options you want to nose by prefixing them with <h:code>-x</h:code>, or by using <h:code>--config=nose.cfg</h:code> if you have a config file. (e.g. to turn on doctest, you should pass <h:code>-x--with-doctest</h:code> to autonose)</h:p>
-			</h:div>
-			<h:div id="notes:">
-				<h:h2>Notes:</h:h2>
-				<h:p>Autotest does not (currently):</h:p>
-				<h:blockquote>
-					<h:ul>
-						<h:li>understand dynamic imports (use of <h:code>__import__</h:code>)</h:li>
-						<h:li>track any file types other than <h:code>.py</h:code></h:li>
-					</h:ul>
-				</h:blockquote>
-			</h:div>
-		</h:div>
+</code></pre>
+					<p>See <a href="http://gfxmonk.net/dist/0install/autonose.xml">http://gfxmonk.net/dist/0install/autonose.xml</a> for further deatils.</p>
+					<p>If you really <em>must</em> use pypi, you can <code>pip install autonose</code>.</p>
+				</div>
+				<div id="advanced-use:">
+					<h2>Advanced use:</h2>
+					<p>nosetests has a lot of options and plugins. autonose tries to work as best it can with them, but be warned that some plugins will interfere with autonose (particularly any that do their own output or manage test results).</p>
+					<p>However, you can pass any options you want to nose by prefixing them with <code>-x</code>, or by using <code>--config=nose.cfg</code> if you have a config file. (e.g. to turn on doctest, you should pass <code>-x--with-doctest</code> to autonose)</p>
+				</div>
+				<div id="notes:">
+					<h2>Notes:</h2>
+					<p>Autotest does not (currently):</p>
+					<ul>
+						<li>understand dynamic imports (use of <code>__import__</code>)</li>
+						<li>track any file types other than <code>.py</code></li>
+					</ul>
+				</div>
+			</div>
+		</div>
 	</rich-description>
 	<group main="autonose/runner.py">
 		<requires interface="http://gfxmonk.net/dist/0install/nose.xml">

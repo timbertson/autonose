@@ -6,10 +6,10 @@ library.
 
 Features:
 
- - Re-run tests instantly when you save a file
- - Re-runs only tests that have failed or depend on changed files
- - GTK GUI (console fallback for other platforms or by passing in --console)
- - focus mode: keep running a single test (GUI only)
+- Re-run tests instantly when you save a file
+- Re-runs only tests that have failed or depend on changed files
+- GTK GUI (console fallback for other platforms or by passing in --console)
+- focus mode: keep running a single test (GUI only)
 
 To activate focus mode, click the large grey circle next to the test result.
 To go back to normal mode, click the "#" in the status bar (next to the
@@ -42,7 +42,7 @@ If you have modified the code, you will want to create a local feed to run::
 
 See http://gfxmonk.net/dist/0install/autonose.xml for further deatils.
 
-If you really _must_ use pypi, you can ``pip install autonose``.
+If you really *must* use pypi, you can ``pip install autonose``.
 
 Advanced use:
 -------------
@@ -60,6 +60,6 @@ Notes:
 
 Autotest does not (currently):
 
- - understand dynamic imports (use of ``__import__``)
- - track any file types other than ``.py``
+- understand dynamic imports (use of ``__import__``)
+- track any file types other than ``.py``
 
