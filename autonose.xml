@@ -40,7 +40,7 @@ To launch it, simply run::
 
 You can also use 0alias to make a short name for it::
 
-	$ 0alias http://gfxmonk.net/dist/0install/autonose.xml autonose
+	$ 0alias autonose http://gfxmonk.net/dist/0install/autonose.xml
 	$ autonose
 
 If you have modified the code, you will want to create a local feed to run::
@@ -93,7 +93,7 @@ Autotest does not (currently):
 					<pre><code>$ 0launch http://gfxmonk.net/dist/0install/autonose.xml
 </code></pre>
 					<p>You can also use 0alias to make a short name for it:</p>
-					<pre><code>$ 0alias http://gfxmonk.net/dist/0install/autonose.xml autonose
+					<pre><code>$ 0alias autonose http://gfxmonk.net/dist/0install/autonose.xml
 $ autonose
 </code></pre>
 					<p>If you have modified the code, you will want to create a local feed to run:</p>
