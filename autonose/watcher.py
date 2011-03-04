@@ -100,9 +100,12 @@ class Watcher(nose.plugins.Plugin):
 		self._current_test = test
 	
 	def _test_file(self, test):
-		file_path = test.address()[0]
-		if not os.path.exists(file_path):
-			raise RuntimeError("test.address does not contain a valid file: %s" % (test.address(),))
+		addr = test.address()
+		err = RuntimeError("test.address does not contain a valid file: %s" % (addr,))
+		if not addr: raise err
+
+		file_path = addr[0]
+		if not os.path.exists(file_path): raise err
 		return file_util.relative(file_util.source(file_path))
 
 	def _update_test(self, test, state, err=None):
