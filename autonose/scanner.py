@@ -25,6 +25,7 @@ def load():
 	try:
 		while not loaded:
 			picklefile = open_file(path)
+			logging.info("loading saved state from %s" % (path,))
 			try:
 				ret = pickle.load(picklefile)
 				ret.check()
@@ -60,3 +61,5 @@ def reset():
 	if os.path.exists(path):
 		log.info("removing %s" % (path,))
 		os.remove(path)
+	else:
+		log.info("No such file to remove: %s" % (path,))

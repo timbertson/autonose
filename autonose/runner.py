@@ -58,13 +58,13 @@ class Main(object):
 	def run(self):
 		self.init_logging()
 		self.init_nose_args()
+		if self.opts.clear:
+			scanner.reset()
 		state_manager = scanner.load()
 		if self.opts.dump_state:
 			print repr(state_manager.state)
 			return
 		self.init_ui()
-		if self.opts.clear:
-			scanner.reset()
 		try:
 			self.run_forever(state_manager)
 		except Exception, e:
