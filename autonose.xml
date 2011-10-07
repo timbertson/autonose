@@ -74,55 +74,47 @@ Autotest does not (currently):
 	</description>
 	<rich-description xmlns="http://gfxmonk.net/dist/0install" xmlns:h="http://www.w3.org/1999/xhtml">
 		<div xmlns="http://www.w3.org/1999/xhtml">
-			<div id="autonose">
-				<h1>Autonose</h1>
-				<p>Autonose is an autotest-like tool for python, using the excellent nosetest library.</p>
-				<p>Features:</p>
-				<ul>
-					<li>Re-run tests instantly when you save a file</li>
-					<li>Re-runs only tests that have failed or depend on changed files</li>
-					<li>GTK GUI (console fallback for other platforms or by passing in --console)</li>
-					<li>focus mode: keep running a single test (GUI only)</li>
-				</ul>
-				<p>To activate focus mode, click the large grey circle next to the test result. To go back to normal mode, click the "#" in the status bar (next to the number of tests run).</p>
-				<p>Note: on a Mac, to get immediate filesystem notification you may need to install watchdog using <code>easy_install</code>, as it needs to compile a native extension which isn't included in the 0install package.</p>
-				<div id="installation:">
-					<h2>Installation:</h2>
-					<p>The officially supported installation mechanism is zero install. You will need the zeroinstall-injector package (from apt, yum, macports, etc.) or <a href="http://zero-install.sourceforge.net/injector.html">your platform's equivalent</a>.</p>
-					<p>To launch it, simply run:</p>
-					<pre>
-						<code>$ 0launch http://gfxmonk.net/dist/0install/autonose.xml
+			<h1 id="autonose">Autonose</h1>
+			<p>Autonose is an autotest-like tool for python, using the excellent nosetest library.</p>
+			<p>Features:</p>
+			<ul>
+				<li>Re-run tests instantly when you save a file</li>
+				<li>Re-runs only tests that have failed or depend on changed files</li>
+				<li>GTK GUI (console fallback for other platforms or by passing in --console)</li>
+				<li>focus mode: keep running a single test (GUI only)</li>
+			</ul>
+			<p>To activate focus mode, click the large grey circle next to the test result. To go back to normal mode, click the "#" in the status bar (next to the number of tests run).</p>
+			<p>Note: on a Mac, to get immediate filesystem notification you may need to install watchdog using <code>easy_install</code>, as it needs to compile a native extension which isn't included in the 0install package.</p>
+			<h2 id="installation">Installation:</h2>
+			<p>The officially supported installation mechanism is zero install. You will need the zeroinstall-injector package (from apt, yum, macports, etc.) or <a href="http://zero-install.sourceforge.net/injector.html">your platform's equivalent</a>.</p>
+			<p>To launch it, simply run:</p>
+			<pre>
+				<code>$ 0launch http://gfxmonk.net/dist/0install/autonose.xml
 </code>
-					</pre>
-					<p>You can also use 0alias to make a short name for it:</p>
-					<pre>
-						<code>$ 0alias autonose http://gfxmonk.net/dist/0install/autonose.xml
+			</pre>
+			<p>You can also use 0alias to make a short name for it:</p>
+			<pre>
+				<code>$ 0alias autonose http://gfxmonk.net/dist/0install/autonose.xml
 $ autonose
 </code>
-					</pre>
-					<p>If you have modified the code, you will want to create a local feed to run:</p>
-					<pre>
-						<code>$ 0launch http://gfxmonk.net/dist/0install/0local.xml autonose.xml
+			</pre>
+			<p>If you have modified the code, you will want to create a local feed to run:</p>
+			<pre>
+				<code>$ 0launch http://gfxmonk.net/dist/0install/0local.xml autonose.xml
 $ 0launch autonose-local.xml
 </code>
-					</pre>
-					<p>See <a href="http://gfxmonk.net/dist/0install/autonose.xml">http://gfxmonk.net/dist/0install/autonose.xml</a> for further deatils.</p>
-					<p>If you really <em>must</em> use pypi, you can <code>pip install autonose</code>.</p>
-				</div>
-				<div id="advanced-use:">
-					<h2>Advanced use:</h2>
-					<p>nosetests has a lot of options and plugins. autonose tries to work as best it can with them, but be warned that some plugins will interfere with autonose (particularly any that do their own output or manage test results).</p>
-					<p>However, you can pass any options you want to nose by prefixing them with <code>-x</code>, or by using <code>--config=nose.cfg</code> if you have a config file. (e.g. to turn on doctest, you should pass <code>-x--with-doctest</code> to autonose)</p>
-				</div>
-				<div id="notes:">
-					<h2>Notes:</h2>
-					<p>Autotest does not (currently):</p>
-					<ul>
-						<li>understand dynamic imports (use of <code>__import__</code>)</li>
-						<li>track any file types other than <code>.py</code></li>
-					</ul>
-				</div>
-			</div>
+			</pre>
+			<p>See <a href="http://gfxmonk.net/dist/0install/autonose.xml">http://gfxmonk.net/dist/0install/autonose.xml</a> for further deatils.</p>
+			<p>If you really <em>must</em> use pypi, you can <code>pip install autonose</code>.</p>
+			<h2 id="advanced-use">Advanced use:</h2>
+			<p>nosetests has a lot of options and plugins. autonose tries to work as best it can with them, but be warned that some plugins will interfere with autonose (particularly any that do their own output or manage test results).</p>
+			<p>However, you can pass any options you want to nose by prefixing them with <code>-x</code>, or by using <code>--config=nose.cfg</code> if you have a config file. (e.g. to turn on doctest, you should pass <code>-x--with-doctest</code> to autonose)</p>
+			<h2 id="notes">Notes:</h2>
+			<p>Autotest does not (currently):</p>
+			<ul>
+				<li>understand dynamic imports (use of <code>__import__</code>)</li>
+				<li>track any file types other than <code>.py</code></li>
+			</ul>
 		</div>
 	</rich-description>
 	<group main="autonose/runner.py">
@@ -171,6 +163,10 @@ $ 0launch autonose-local.xml
 		<implementation id="sha1new=876d834a31be950ccf085f2aabb32888f18688fe" released="2011-03-05" version="0.2.1">
 			<manifest-digest sha256="cf6592a2853543a19689dba9570f59aa647d6879ab257a052d9b4bc20c40b5b5"/>
 			<archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.2.1.tgz" size="62543"/>
+		</implementation>
+		<implementation id="sha1new=4443b16cba9111825cff732645b24ae97342bf7a" released="2011-10-08" version="0.2.2">
+			<manifest-digest sha256="2d679d7310c3255a76b420568242890dfbd04d5e4ed60a88d088335f6f8bf8cc"/>
+			<archive href="http://gfxmonk.net/dist/0install/autonose/autonose-0.2.2.tgz" size="61901"/>
 		</implementation>
 	</group>
 </interface>
