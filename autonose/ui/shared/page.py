@@ -256,7 +256,7 @@ class Page(object):
 			<li class="cause">
 				<span class="type">%s</span>: <pre class="message">%s</pre>
 			</li>
-		""" % tuple(map(h, (cls.__name__, message)))
+		""" % tuple(map(h, (cls, message)))
 	
 	def __str__(self):
 		return str(self.content)

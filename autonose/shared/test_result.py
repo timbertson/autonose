@@ -81,6 +81,7 @@ class TestResult(ResultEvent):
 
 	def extract_error(self, err):
 		cls, instance, tb = err
+		cls = getattr(cls, '__name__', str(cls))
 		trace = traceback.extract_tb(tb)
 		trace = self.__filter_unittest_from_traceback(tb)
 
