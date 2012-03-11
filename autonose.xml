@@ -148,6 +148,9 @@ $ 0launch autonose-local.xml
 		<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		<command name="test">
 			<runner interface="http://gfxmonk.net/dist/0install/nosetests-runner.xml"/>
+			<requires interface="http://gfxmonk.net/dist/0install/mocktest.xml">
+				<version not-before="0.6.1"/>
+			</requires>
 		</command>
 		<requires interface="http://gfxmonk.net/dist/0install/paragram.xml"/>
 		<requires interface="http://gfxmonk.net/dist/0install/nose.xml">
