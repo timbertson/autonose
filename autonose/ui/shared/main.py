@@ -1,6 +1,6 @@
 import logging
-from shared.test_result import ResultEvent
-from watcher import TestRun
+from autonose.shared.test_result import ResultEvent
+from autonose.watcher import TestRun
 import paragram as pg
 
 from page import Page

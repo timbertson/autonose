@@ -146,7 +146,7 @@ $ 0launch autonose-local.xml
 	</group>
 	<group main="autonose/runner.py">
 		<environment insert="" mode="prepend" name="PYTHONPATH"/>
-		<command name="test" path=".">
+		<command name="test">
 			<runner interface="http://gfxmonk.net/dist/0install/nosetests-runner.xml"/>
 		</command>
 		<requires interface="http://gfxmonk.net/dist/0install/paragram.xml"/>
