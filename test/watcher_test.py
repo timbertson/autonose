@@ -1,4 +1,4 @@
-import test_helper
+from . import test_helper
 
 from mocktest import *
 from autonose.watcher import Watcher

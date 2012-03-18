@@ -147,11 +147,15 @@ $ 0launch autonose-local.xml
 	<group main="autonose/runner.py">
 		<environment insert="" mode="prepend" name="PYTHONPATH"/>
 		<command name="test">
-			<runner interface="http://gfxmonk.net/dist/0install/nosetests-runner.xml"/>
+			<environment insert="test" mode="prepend" name="PYTHONPATH"/>
+			<runner interface="http://gfxmonk.net/dist/0install/nosetests-runner.xml" command="run-py2"/>
 			<requires interface="http://gfxmonk.net/dist/0install/mocktest.xml">
-				<version not-before="0.6.1"/>
+				<version not-before="0.6.2"/>
 			</requires>
 		</command>
+		<requires interface="http://repo.roscidus.com/python/python">
+			<version before="3"/>
+		</requires>
 		<requires interface="http://gfxmonk.net/dist/0install/paragram.xml"/>
 		<requires interface="http://gfxmonk.net/dist/0install/nose.xml">
 			<version not-before="0.11"/>
