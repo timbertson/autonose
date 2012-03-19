@@ -19,21 +19,23 @@ class Summary(object):
 		self.reset()
 	
 	def reset(self):
-		self.ran = self.failures = self.errors = 0
+		self.ran = self.failures = self.errors = self.skipped = 0
 	
 	def finish(self): pass
 
 	def __str__(self):
 		html = '<a href="#">#</a> ran <span class="tests">%s tests</span>' % (self.ran,)
-		if self.failures or self.errors:
-			html += ' ('
-			if self.failures:
-				html += '<span class="failures">%s failures</span>' % (self.failures,)
-				if self.errors:
-					html += ", "
-			if self.errors:
-				html += '<span class="errors">%s errors</span>'  % (self.errors,)
-			html += ')'
+		supplementary = [
+			('failures', self.failures),
+			('errors', self.errors),
+			('skipped', self.skipped)
+		]
+		relevant_supps = list(filter(lambda x: x[-1] > 0, supplementary))
+		def render_supp(supp):
+			name, num = supp
+			return '<span class="{name}">{num} {name}</span>'.format(name=name, num=num)
+		if relevant_supps:
+			html += ' (' + (', '.join(map(render_supp, relevant_supps))) + ')'
 		return html
 
 class Status(object):
@@ -195,6 +197,8 @@ class Page(object):
 			self.summary.failures += 1
 		elif test.state == error:
 			self.summary.errors += 1
+		elif test.state == skip:
+			self.summary.skipped += 1
 		elif test.state == success:
 			del self.tests[test.id]
 			return

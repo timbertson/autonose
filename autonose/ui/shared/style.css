@@ -89,6 +89,7 @@ pre, code {
 #summary .tests { color: #9e9; }
 #summary .failures { color: #e55; }
 #summary .errors { color: #eb5; }
+#summary .skipped { color: #6ae; }
 
 
 
