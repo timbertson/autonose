@@ -156,6 +156,7 @@ $ 0launch autonose-local.xml
 		<requires interface="http://repo.roscidus.com/python/python">
 			<version before="3"/>
 		</requires>
+		<requires interface="http://gfxmonk.net/dist/0install/python-webkit.xml" importance="recommended"/>
 		<requires interface="http://gfxmonk.net/dist/0install/paragram.xml"/>
 		<requires interface="http://gfxmonk.net/dist/0install/nose.xml">
 			<version not-before="0.11"/>

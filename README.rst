@@ -1,6 +1,8 @@
 Autonose
 ========
 
+.. image:: http://gfxmonk.net/dist/status/project/autonose.png
+
 Autonose is an autotest-like tool for python, using the excellent nosetest
 library.
 
@@ -18,31 +20,6 @@ number of tests run).
 Note: on a Mac, to get immediate filesystem notification you may need to install
 watchdog using ``easy_install``, as it needs to compile a native extension which
 isn't included in the 0install package.
-
-Installation:
--------------
-
-The officially supported installation mechanism is zero install. You will
-need the zeroinstall-injector package (from apt, yum, macports, etc.) or
-`your platform's equivalent <http://zero-install.sourceforge.net/injector.html>`_.
-
-To launch it, simply run::
-
-	$ 0launch http://gfxmonk.net/dist/0install/autonose.xml
-
-You can also use 0alias to make a short name for it::
-
-	$ 0alias autonose http://gfxmonk.net/dist/0install/autonose.xml
-	$ autonose
-
-If you have modified the code, you will want to create a local feed to run::
-
-	$ 0launch http://gfxmonk.net/dist/0install/0local.xml autonose.xml
-	$ 0launch autonose-local.xml
-
-See http://gfxmonk.net/dist/0install/autonose.xml for further deatils.
-
-If you really *must* use pypi, you can ``pip install autonose``.
 
 Advanced use:
 -------------
